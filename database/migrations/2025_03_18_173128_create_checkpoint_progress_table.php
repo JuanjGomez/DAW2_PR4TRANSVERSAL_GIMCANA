@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('checkpoint_progress', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('group_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('checkpoint_id')->constrained()->onDelete('cascade');
+            $table->foreignId('group_id')->constrained();
+            $table->foreignId('user_id')->constrained('usuarios');
+            $table->foreignId('checkpoint_id')->constrained();
             $table->timestamp('completed_at');
             $table->integer('score')->nullable();
             $table->integer('attempts')->default(0);

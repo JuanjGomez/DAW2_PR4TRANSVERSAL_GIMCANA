@@ -19,14 +19,14 @@ class UserSeeder extends Seeder
         $userRole = Role::where('name', 'user')->first();
 
         User::create([
-            'name' => 'Admin',
+            'nombre' => 'Admin',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('asdASD123'),
             'role_id' => $adminRole->id,
         ]);
 
         User::create([
-            'name' => 'User',
+            'nombre' => 'User',
             'email' => 'user@gmail.com',
             'password' => Hash::make('asdASD123'),
             'role_id' => $userRole->id,
@@ -34,7 +34,7 @@ class UserSeeder extends Seeder
 
         for ($i = 1; $i <= 8; $i++) {
             User::create([
-                'name' => 'User ' . $i,
+                'nombre' => 'User ' . $i,
                 'email' => 'user' . $i . '@gmail.com',
                 'password' => Hash::make('asdASD123'),
                 'role_id' => $userRole->id,
