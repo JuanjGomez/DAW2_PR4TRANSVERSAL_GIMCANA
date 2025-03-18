@@ -97,3 +97,14 @@ button {
 button:hover {
     background: #357abd;
 }
+
+.form-error-message {
+    color: #ff4444;
+    font-size: 0.9em;
+    margin: 10px 0;
+    text-align: center;
+    padding: 10px;
+    background-color: #ffeeee;
+    border: 1px solid #ff4444;
+    border-radius: 8px;
+}

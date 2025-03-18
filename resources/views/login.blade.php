@@ -17,13 +17,18 @@
             <form action="{{ route('login') }}" method="POST">
                 @csrf
                 <div class="input-group">
-                    <input type="email" name="email" placeholder="Email">
+                    <input type="email" name="email" placeholder="Email" value="{{ old('email') }}">
                     <span class="error-message"></span>
                 </div>
                 <div class="input-group">
                     <input type="password" name="password" placeholder="Password">
                     <span class="error-message"></span>
                 </div>
+                @if ($errors->any())
+                    <div class="form-error-message">
+                        {{ $errors->first() }}
+                    </div>
+                @endif
                 <button type="submit">Login</button>
             </form>
         </div>
