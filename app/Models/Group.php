@@ -26,7 +26,8 @@ class Group extends Model
     public function members()
     {
         return $this->belongsToMany(User::class, 'group_member')
-                    ->withTimestamp('joined_at');
+                    ->withPivot('joined_at')
+                    ->withTimestamps();
     }
 
     public function competitions()

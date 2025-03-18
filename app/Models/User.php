@@ -69,7 +69,8 @@ class User extends Authenticatable
     public function memberGroups()
     {
         return $this->belongsToMany(Group::class, 'group_member')
-                    ->withTimestamp('joined_at');
+                    ->withPivot('joined_at')
+                    ->withTimestamps();
     }
 
     public function favoritePlaces()
