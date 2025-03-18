@@ -51,7 +51,7 @@ h1 {
 form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 10px;
 }
 
 input {
@@ -65,6 +65,22 @@ input {
 input:focus {
     outline: none;
     border-color: #4a90e2;
+}
+
+input.error {
+    border-color: #ff4444;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.error-message {
+    color: #ff4444;
+    font-size: 0.8em;
+    height: 16px;
 }
 
 button {

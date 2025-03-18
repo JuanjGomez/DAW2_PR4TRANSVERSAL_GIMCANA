@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ asset('css/login.css') }}">
     <title>Login</title>
+    <script src="{{ asset('js/login.js') }}" defer></script>
 </head>
 <body>
     <div class="container">
@@ -15,8 +16,14 @@
             <h1>Login</h1>
             <form action="{{ route('login') }}" method="POST">
                 @csrf
-                <input type="email" name="email" placeholder="Email" required>
-                <input type="password" name="password" placeholder="Password" required>
+                <div class="input-group">
+                    <input type="email" name="email" placeholder="Email">
+                    <span class="error-message"></span>
+                </div>
+                <div class="input-group">
+                    <input type="password" name="password" placeholder="Password">
+                    <span class="error-message"></span>
+                </div>
                 <button type="submit">Login</button>
             </form>
         </div>
