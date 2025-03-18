@@ -29,8 +29,14 @@
                         {{ $errors->first() }}
                     </div>
                 @endif
-                <button type="submit">Login</button>
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition duration-300">Login</button>
             </form>
+            <div class="mt-6 text-center">
+                <p class="text-gray-600">¿No tienes una cuenta?</p>
+                <a href="{{ route('register') }}" class="mt-2 inline-block bg-transparent text-blue-500 font-semibold py-2 px-4 border border-blue-500 rounded hover:bg-blue-500 hover:text-white transition duration-300">
+                    Regístrate aquí
+                </a>
+            </div>
         </div>
     </div>
 </body>
