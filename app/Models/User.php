@@ -5,6 +5,10 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use App\Models\Role;
+use App\Models\Challenge;
+use App\Models\Group;
+use App\Models\Place;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
@@ -21,6 +25,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role_id'
     ];
 
     /**
@@ -44,5 +49,32 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function challenges()
+    {
+        return $this->hasMany(Challenge::class);
+    }
+
+    public function groups()
+    {
+        return $this->hasMany(Group::class);
+    }
+
+    public function memberGroups()
+    {
+        return $this->belongsToMany(Group::class, 'group_member')
+                    ->withTimestamp('joined_at');
+    }
+
+    public function favoritePlaces()
+    {
+        return $this->belongsToMany(Place::class, 'user_favorite')
+                    ->withTimestamps();
     }
 }
