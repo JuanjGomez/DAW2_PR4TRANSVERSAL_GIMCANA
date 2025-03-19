@@ -11,7 +11,7 @@ use App\Models\Leaderboard;
 
 class Group extends Model
 {
-    protected $fillable = ['name', 'user_id', 'challenge_id'];
+    protected $fillable = ['name', 'user_id', 'challenge_id', 'code'];
 
     public function creator()
     {
