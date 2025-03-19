@@ -13,3 +13,11 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
+
+Route::get('/admin/dashboard', function () {
+    return view('admin.dashboard');
+})->middleware('auth');
+
+Route::get('/user/dashboard', function () {
+    return view('user.dashboard');
+})->middleware('auth');
