@@ -23,7 +23,14 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             // Autenticación exitosa
-            return redirect()->intended('/dashboard');
+            $user = Auth::user();
+
+            // Verificar si el usuario es administrador
+            if ($user->role->name === 'admin') {
+                return redirect()->intended('/admin/dashboard');
+            } else {
+                return redirect()->route('gimcana.form');
+            }
         }
 
         // Autenticación fallida
