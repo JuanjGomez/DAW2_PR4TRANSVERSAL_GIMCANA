@@ -6,9 +6,10 @@
     <title>Mapa Usuario</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ asset('css/userIndex.css') }}">
     <style>
-        #map { 
-            height: 100vh; 
+        #map {
+            height: 100vh;
             width: 100%;
             position: relative;
         }
@@ -46,6 +47,12 @@
         </button>
     </div>
 
+    <!-- Botones de Lobbies -->
+    <div id="lobbyButtons" class="hidden lobby-buttons">
+        <button class="lobby-button">Crear Lobby</button>
+        <button class="lobby-button">Unirse a Lobby</button>
+    </div>
+
     <!-- Mapa -->
     <div id="map"></div>
 
@@ -54,7 +61,7 @@
     <script>
         // Inicializar el mapa
         const map = L.map('map').setView([41.3851, 2.1734], 13);
-        
+
         // Añadir capa de OpenStreetMap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
@@ -68,7 +75,7 @@
             navigator.geolocation.watchPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
-                    
+
                     // Si ya existe un marcador, actualizar su posición
                     if (userMarker) {
                         userMarker.setLatLng([latitude, longitude]);
@@ -107,5 +114,6 @@
             console.log('Abrir modal de Filtros');
         });
     </script>
+    <script src="{{ asset('js/toolsUser.js') }}"></script>
 </body>
-</html> 
+</html>

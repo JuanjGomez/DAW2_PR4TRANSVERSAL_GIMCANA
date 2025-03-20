@@ -43,4 +43,4 @@ class RegisterController extends Controller
 
         return redirect('/login')->with('success', 'Registro exitoso. Por favor inicia sesión.');
     }
-} 
+}

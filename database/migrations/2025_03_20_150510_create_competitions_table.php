@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('gimcana_id')->constrained('gimcanas');
             $table->string('code')->unique();
-            $table->foreignId('created_by')->constrained('users');
+            $table->foreignId('created_by')->constrained('user');
             $table->dateTime('start_date')->nullable();
             $table->enum('status', ['pending', 'active', 'completed', 'cancelled'])->default('pending');
             $table->timestamps();

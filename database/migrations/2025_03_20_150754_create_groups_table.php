@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('competition_id')->constrained('competitions');
             $table->string('name');
-            $table->foreignId('leader_id')->constrained('users');
+            $table->foreignId('leader_id')->constrained('user');
             $table->integer('current_checkpoint')->default(1);
             $table->timestamps();
         });
