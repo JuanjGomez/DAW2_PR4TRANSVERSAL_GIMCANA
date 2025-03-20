@@ -3,7 +3,7 @@ name: Deploy to FTP
 on:
   push:
     branches:
-      - servidor
+      - servidor  # La rama que activará el despliegue
 
 jobs:
   deploy:
@@ -15,11 +15,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Deploy to FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
+          protocol: ftps  # Usa FTPS porque tu servidor requiere seguridad
           port: 21
           local-dir: ./
