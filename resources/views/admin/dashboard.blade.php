@@ -33,6 +33,9 @@
                     <button onclick="showTab('places')" class="tab-btn py-4 px-6 border-b-2 font-medium" data-tab="places">
                         Lugares
                     </button>
+                    <button onclick="showTab('gimcanas')" class="tab-btn py-4 px-6 border-b-2 font-medium" data-tab="gimcanas">
+                        Gimcanas
+                    </button>
                     <button onclick="showTab('checkpoints')" class="tab-btn py-4 px-6 border-b-2 font-medium" data-tab="checkpoints">
                         Puntos de Control
                     </button>
@@ -79,6 +82,35 @@
             </div>
         </div>
 
+        <!-- Contenido de Gimcanas -->
+        <div id="gimcanas-tab" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Formulario de gimcanas -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-xl font-bold mb-4">Añadir Nueva Gimcana</h2>
+                    <form id="gimcanaForm">
+                        <div class="mb-4">
+                            <label for="gimcana-name" class="block text-gray-700">Nombre</label>
+                            <input type="text" id="gimcana-name" name="name" class="w-full px-4 py-2 border rounded-lg" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="gimcana-description" class="block text-gray-700">Descripción</label>
+                            <textarea id="gimcana-description" name="description" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                        </div>
+                        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                            Guardar Gimcana
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Lista de gimcanas -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-xl font-bold mb-4">Gimcanas Guardadas</h2>
+                    <div id="gimcanasList" class="space-y-4"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Contenido de Checkpoints -->
         <div id="checkpoints-tab" class="tab-content hidden">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -87,36 +119,30 @@
                     <h2 class="text-xl font-bold mb-4">Añadir Nuevo Punto de Control</h2>
                     <form id="checkpointForm">
                         <div class="mb-4">
-                            <label for="cp-name" class="block text-gray-700">Nombre</label>
-                            <input type="text" id="cp-name" name="name" class="w-full px-4 py-2 border rounded-lg" required>
+                            <label for="cp-place" class="block text-gray-700">Lugar</label>
+                            <select id="cp-place" name="place_id" class="w-full px-4 py-2 border rounded-lg" required>
+                                <option value="">Selecciona un lugar</option>
+                                <!-- Se llenará dinámicamente -->
+                            </select>
                         </div>
                         <div class="mb-4">
-                            <label for="cp-description" class="block text-gray-700">Descripción</label>
-                            <textarea id="cp-description" name="description" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                            <label for="cp-gimcana" class="block text-gray-700">Gimcana</label>
+                            <select id="cp-gimcana" name="gimcana_id" class="w-full px-4 py-2 border rounded-lg" required>
+                                <option value="">Selecciona una gimcana</option>
+                                <!-- Se llenará dinámicamente -->
+                            </select>
                         </div>
                         <div class="mb-4">
-                            <label for="cp-hint" class="block text-gray-700">Pista</label>
-                            <textarea id="cp-hint" name="hint" rows="2" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                            <label for="cp-challenge" class="block text-gray-700">Reto</label>
+                            <textarea id="cp-challenge" name="challenge" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label for="cp-latitude" class="block text-gray-700">Latitud</label>
-                                <input type="number" step="any" id="cp-latitude" name="latitude" class="w-full px-4 py-2 border rounded-lg" required>
-                            </div>
-                            <div>
-                                <label for="cp-longitude" class="block text-gray-700">Longitud</label>
-                                <input type="number" step="any" id="cp-longitude" name="longitude" class="w-full px-4 py-2 border rounded-lg" required>
-                            </div>
+                        <div class="mb-4">
+                            <label for="cp-clue" class="block text-gray-700">Pista</label>
+                            <textarea id="cp-clue" name="clue" rows="2" class="w-full px-4 py-2 border rounded-lg" required></textarea>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label for="cp-order" class="block text-gray-700">Orden</label>
-                                <input type="number" id="cp-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
-                            </div>
-                            <div>
-                                <label for="cp-points" class="block text-gray-700">Puntos</label>
-                                <input type="number" id="cp-points" name="points" min="0" class="w-full px-4 py-2 border rounded-lg" required>
-                            </div>
+                        <div class="mb-4">
+                            <label for="cp-order" class="block text-gray-700">Orden</label>
+                            <input type="number" id="cp-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
                         </div>
                         <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
                             Guardar Punto de Control
@@ -144,11 +170,14 @@
         let currentMarker = null;
         let markers = [];
         let activeTab = 'places';
+        let places = [];
+        let gimcanas = [];
 
         // Inicializar mapa
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             loadPlaces();
+            loadGimcanas();
             loadCheckpoints();
             setupForms();
             showTab('places');
@@ -173,9 +202,6 @@
                 if (activeTab === 'places') {
                     document.getElementById('latitude').value = lat;
                     document.getElementById('longitude').value = lng;
-                } else {
-                    document.getElementById('cp-latitude').value = lat;
-                    document.getElementById('cp-longitude').value = lng;
                 }
             });
         }
@@ -216,6 +242,25 @@
                 });
             });
 
+            // Formulario de gimcanas
+            document.getElementById('gimcanaForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                fetch('/api/gimcanas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(Object.fromEntries(formData))
+                })
+                .then(response => response.json())
+                .then(gimcana => {
+                    loadGimcanas();
+                    this.reset();
+                });
+            });
+
             // Formulario de checkpoints
             document.getElementById('checkpointForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -232,10 +277,6 @@
                 .then(checkpoint => {
                     loadCheckpoints();
                     this.reset();
-                    if (currentMarker) {
-                        map.removeLayer(currentMarker);
-                        currentMarker = null;
-                    }
                 });
             });
         }
@@ -243,10 +284,15 @@
         function loadPlaces() {
             fetch('/api/places')
                 .then(response => response.json())
-                .then(places => {
+                .then(data => {
+                    places = data;
                     const placesList = document.getElementById('placesList');
                     placesList.innerHTML = '';
                     clearMarkers();
+
+                    // Actualizar el selector de lugares en el formulario de checkpoints
+                    const placeSelect = document.getElementById('cp-place');
+                    placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
 
                     places.forEach(place => {
                         // Añadir al listado
@@ -268,6 +314,48 @@
                             .bindPopup(`<b>${place.name}</b><br>${place.description}`)
                             .addTo(map);
                         markers.push(marker);
+
+                        // Añadir al selector
+                        const option = document.createElement('option');
+                        option.value = place.id;
+                        option.textContent = place.name;
+                        placeSelect.appendChild(option);
+                    });
+                });
+        }
+
+        function loadGimcanas() {
+            fetch('/api/gimcanas')
+                .then(response => response.json())
+                .then(data => {
+                    gimcanas = data;
+                    const gimcanasList = document.getElementById('gimcanasList');
+                    gimcanasList.innerHTML = '';
+
+                    // Actualizar el selector de gimcanas en el formulario de checkpoints
+                    const gimcanaSelect = document.getElementById('cp-gimcana');
+                    gimcanaSelect.innerHTML = '<option value="">Selecciona una gimcana</option>';
+
+                    gimcanas.forEach(gimcana => {
+                        // Añadir al listado
+                        const gimcanaElement = document.createElement('div');
+                        gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
+                        gimcanaElement.innerHTML = `
+                            <h3 class="font-bold">${gimcana.name}</h3>
+                            <p class="text-gray-600">${gimcana.description}</p>
+                            <div class="mt-2">
+                                <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700">
+                                    Eliminar
+                                </button>
+                            </div>
+                        `;
+                        gimcanasList.appendChild(gimcanaElement);
+
+                        // Añadir al selector
+                        const option = document.createElement('option');
+                        option.value = gimcana.id;
+                        option.textContent = gimcana.name;
+                        gimcanaSelect.appendChild(option);
                     });
                 });
         }
@@ -278,17 +366,22 @@
                 .then(checkpoints => {
                     const checkpointsList = document.getElementById('checkpointsList');
                     checkpointsList.innerHTML = '';
-                    clearMarkers();
 
                     checkpoints.forEach(checkpoint => {
+                        // Encontrar el lugar asociado para obtener las coordenadas
+                        const place = places.find(p => p.id === checkpoint.place_id);
+                        const gimcana = gimcanas.find(g => g.id === checkpoint.gimcana_id);
+
+                        if (!place || !gimcana) return;
+
                         // Añadir al listado
                         const checkpointElement = document.createElement('div');
                         checkpointElement.className = 'checkpoint-card p-4 border rounded-lg hover:bg-gray-50';
                         checkpointElement.innerHTML = `
-                            <h3 class="font-bold">${checkpoint.name} (Orden: ${checkpoint.order})</h3>
-                            <p class="text-gray-600">${checkpoint.description}</p>
-                            <p class="text-gray-500"><strong>Pista:</strong> ${checkpoint.hint}</p>
-                            <p class="text-gray-500"><strong>Puntos:</strong> ${checkpoint.points}</p>
+                            <h3 class="font-bold">${place.name} (Orden: ${checkpoint.order})</h3>
+                            <p class="text-gray-600"><strong>Gimcana:</strong> ${gimcana.name}</p>
+                            <p class="text-gray-600"><strong>Reto:</strong> ${checkpoint.challenge}</p>
+                            <p class="text-gray-500"><strong>Pista:</strong> ${checkpoint.clue}</p>
                             <div class="mt-2">
                                 <button onclick="deleteCheckpoint(${checkpoint.id})" class="text-red-500 hover:text-red-700">
                                     Eliminar
@@ -297,11 +390,13 @@
                         `;
                         checkpointsList.appendChild(checkpointElement);
 
-                        // Añadir al mapa
-                        const marker = L.marker([checkpoint.latitude, checkpoint.longitude])
-                            .bindPopup(`<b>${checkpoint.name}</b><br>Orden: ${checkpoint.order}<br>${checkpoint.hint}`)
-                            .addTo(map);
-                        markers.push(marker);
+                        // Añadir al mapa si estamos en la pestaña de checkpoints
+                        if (activeTab === 'checkpoints') {
+                            const marker = L.marker([place.latitude, place.longitude])
+                                .bindPopup(`<b>${place.name}</b><br>Orden: ${checkpoint.order}<br>${checkpoint.clue}`)
+                                .addTo(map);
+                            markers.push(marker);
+                        }
                     });
                 });
         }
@@ -320,6 +415,18 @@
                     }
                 })
                 .then(() => loadPlaces());
+            }
+        }
+
+        function deleteGimcana(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta gimcana?')) {
+                fetch(`/api/gimcanas/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(() => loadGimcanas());
             }
         }
 
