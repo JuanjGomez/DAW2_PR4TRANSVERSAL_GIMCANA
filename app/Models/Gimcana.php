@@ -5,24 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Group extends Model
+class Gimcana extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'name',
-        'user_id',
-        'challenge_id',
-        'code',
+        'description',
     ];
-
-    public function members()
-    {
-        return $this->hasMany(GroupMember::class);
-    }
 
     public function checkpoints()
     {
-        return $this->hasMany(GroupCheckpoint::class);
+        return $this->hasMany(Checkpoint::class);
     }
 }

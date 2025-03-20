@@ -11,13 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('competitions', function (Blueprint $table) {
+        Schema::create('favorite_places', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->foreignId('challenge_id')->constrained('challenges');
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
-            $table->enum('status', ['pending', 'active', 'completed']);
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('place_id')->constrained('places');
             $table->timestamps();
         });
     }
@@ -27,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('competitions');
+        Schema::dropIfExists('favorite_places');
     }
 };

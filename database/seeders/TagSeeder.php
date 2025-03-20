@@ -13,20 +13,12 @@ class TagSeeder extends Seeder
      */
     public function run(): void
     {
-        $tags = [
-            'History',
-            'Culture',
-            'Architecture',
-            'Art',
-            'Food',
-            'Shopping',
-            'Entertainment',
-        ];
+        Tag::create([
+            'name' => 'Cultura',
+        ]);
 
-        foreach ($tags as $tag) {
-            Tag::create([
-                'name' => $tag,
-            ]);
-        }
+        Tag::create([
+            'name' => 'Gastronomia',
+        ]);
     }
 }
