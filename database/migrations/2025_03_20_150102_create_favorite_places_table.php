@@ -11,11 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('group_member', function (Blueprint $table) {
+        Schema::create('favorite_places', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('group_id')->constrained('groups');
             $table->foreignId('user_id')->constrained('users');
-            $table->timestamp('joined_at')->useCurrent();
+            $table->foreignId('place_id')->constrained('places');
             $table->timestamps();
         });
     }
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('group_member');
+        Schema::dropIfExists('favorite_places');
     }
 };

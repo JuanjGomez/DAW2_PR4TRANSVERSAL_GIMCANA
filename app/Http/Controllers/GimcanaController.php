@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use App\Models\Challenge;
 use App\Models\Group;
 
 class GimcanaController extends Controller
@@ -32,30 +31,6 @@ class GimcanaController extends Controller
                 'max_players' => 'Debe haber al menos 2 jugadores por grupo'
             ])->withInput();
         }
-
-        // Crear el desafío
-        $challenge = Challenge::create([
-            'name' => $request->name,
-            'description' => $request->description,
-            'user_id' => auth()->id(),
-            'max_players' => $request->max_players,
-            'num_groups' => $request->num_groups
-        ]);
-
-        // Crear los grupos
-        for ($i = 1; $i <= $request->num_groups; $i++) {
-            Group::create([
-                'name' => $request->name . ' - Grupo ' . $i,
-                'user_id' => auth()->id(),
-                'challenge_id' => $challenge->id,
-                'code' => Str::random(6)
-            ]);
-        }
-
-        return redirect()->route('user.dashboard')->with([
-            'success' => 'Gimcana creada correctamente!',
-            'code' => $challenge->groups->first()->code
-        ]);
     }
 
     public function joinGimcana(Request $request)
@@ -80,4 +55,4 @@ class GimcanaController extends Controller
 
         return redirect()->route('user.dashboard')->with('success', 'Te has unido a la gimcana correctamente!');
     }
-} 
+}

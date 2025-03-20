@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('groups', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('competition_id')->constrained('competitions');
             $table->string('name');
-            $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('challenge_id')->constrained('challenges');
+            $table->foreignId('leader_id')->constrained('users');
+            $table->integer('current_checkpoint')->default(1);
             $table->timestamps();
         });
     }
