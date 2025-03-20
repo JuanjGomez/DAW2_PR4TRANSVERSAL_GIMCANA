@@ -11,9 +11,9 @@ class Group extends Model
 
     protected $fillable = [
         'name',
-        'user_id',
-        'challenge_id',
-        'code',
+        'competition_id',
+        'leader_id',
+        'current_checkpoint_id',
     ];
 
     public function members()
