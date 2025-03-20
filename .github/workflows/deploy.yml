@@ -23,4 +23,3 @@ jobs:
           protocol: ftps  # Usa FTPS porque tu servidor requiere seguridad
           port: 21
           local-dir: ./  # Carpeta local que estás subiendo
-          server-dir: /laravel/  # Carpeta en el servidor FTP donde se suben los archivos
