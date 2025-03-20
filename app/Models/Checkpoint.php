@@ -10,20 +10,25 @@ class Checkpoint extends Model
     use HasFactory;
 
     protected $fillable = [
-        'place_id',
         'gimcana_id',
+        'place_id',
         'challenge',
         'clue',
-        'order',
+        'order'
     ];
+
+    public function gimcana()
+    {
+        return $this->belongsTo(Gimcana::class);
+    }
 
     public function place()
     {
         return $this->belongsTo(Place::class);
     }
 
-    public function gimcana()
+    public function groupCheckpoints()
     {
-        return $this->belongsTo(Gimcana::class);
+        return $this->hasMany(GroupCheckpoint::class);
     }
 }

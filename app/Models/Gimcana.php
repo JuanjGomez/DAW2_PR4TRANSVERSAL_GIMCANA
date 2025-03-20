@@ -11,11 +11,16 @@ class Gimcana extends Model
 
     protected $fillable = [
         'name',
-        'description',
+        'description'
     ];
 
     public function checkpoints()
     {
         return $this->hasMany(Checkpoint::class);
+    }
+
+    public function groups()
+    {
+        return $this->hasMany(Group::class);
     }
 }
