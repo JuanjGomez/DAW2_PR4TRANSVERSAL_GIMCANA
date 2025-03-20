@@ -24,3 +24,4 @@ jobs:
           port: 21
           local-dir: ./  # Carpeta local que estás subiendo
           remote-dir: /DAW2_PR4TRANSVERSAL_GIMCANA/  # Carpeta en el servidor FTP donde se suben los archivos
+          server-dir: /DAW2_PR4TRANSVERSAL_GIMCANA/
