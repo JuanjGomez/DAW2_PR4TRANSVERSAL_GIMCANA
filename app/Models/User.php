@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use App\Models\Role;
-use App\Models\Challenge;
 use App\Models\Group;
 use App\Models\Place;
 use Illuminate\Notifications\Notifiable;
@@ -59,12 +58,6 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Role::class);
     }
-
-    public function challenges()
-    {
-        return $this->hasMany(Challenge::class);
-    }
-
     public function groups()
     {
         return $this->hasMany(Group::class);
