@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\GimcanaController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\MapController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -24,4 +25,7 @@ Route::get('/admin/dashboard', function () {
     return view('admin.dashboard');
 })->middleware('auth');
 
-Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard')->middleware('auth');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/map', [MapController::class, 'index'])->name('map.index');
+});
