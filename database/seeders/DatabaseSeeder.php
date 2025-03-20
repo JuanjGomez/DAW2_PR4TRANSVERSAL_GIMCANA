@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             TagSeeder::class,
             PlaceSeeder::class,
-            CheckpointSeeder::class,
             GimcanaSeeder::class,
+            CheckpointSeeder::class
         ]);
     }
 }

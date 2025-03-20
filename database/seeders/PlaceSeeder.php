@@ -20,5 +20,21 @@ class PlaceSeeder extends Seeder
             'longitude' => -5.984641,
             'icon' => 'https://example.com/icon.png',
         ]);
+
+        Place::create([
+            'name' => 'Plaza de la Constitución',
+            'address' => 'Plaza de la Constitución, 1',
+            'latitude' => 37.389089,
+            'longitude' => -5.984641,
+            'icon' => 'https://example.com/icon.png',
+        ]);
+
+        Place::create([
+            'name' => 'Plaza de la Constitución',
+            'address' => 'Plaza de la Constitución, 1',
+            'latitude' => 37.389089,
+            'longitude' => -5.984641,
+            'icon' => 'https://example.com/icon.png',
+        ]);
     }
 }
