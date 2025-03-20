@@ -16,9 +16,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             TagSeeder::class,
             PlaceSeeder::class,
-            ChallengeSeeder::class,
-            CompetitionSeeder::class,
-            GroupSeeder::class,
+            GimcanaSeeder::class,
+            CheckpointSeeder::class
         ]);
     }
 }

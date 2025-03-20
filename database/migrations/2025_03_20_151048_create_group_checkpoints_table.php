@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('checkpoints', function (Blueprint $table) {
+        Schema::create('group_checkpoints', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('challenge_id')->constrained('challenges');
-            $table->foreignId('place_id')->constrained('places');
-            $table->text('clue')->nullable();
-            $table->string('test')->nullable();
-            $table->integer('order');
+            $table->foreignId('group_id')->constrained('groups');
+            $table->foreignId('checkpoint_id')->constrained('checkpoints');
+            $table->boolean('completed')->default(false);
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('checkpoints');
+        Schema::dropIfExists('group_checkpoints');
     }
 };

@@ -2,28 +2,28 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Tag;
-use App\Models\Checkpoint;
-use App\Models\User;
 
 class Place extends Model
 {
-    protected $fillable = ['name', 'latitude', 'longitude', 'description', 'icon'];
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'address',
+        'latitude',
+        'longitude',
+        'icon',
+    ];
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class);
+        return $this->belongsToMany(Tag::class, 'place_tag');
     }
 
-    public function checkpoints()
+    public function favoriteByUsers()
     {
-        return $this->hasMany(Checkpoint::class);
-    }
-
-    public function favoritedBy()
-    {
-        return $this->belongsToMany(User::class, 'user_favorite')
-                    ->withTimestamps();
+        return $this->belongsToMany(User::class, 'favorite_places');
     }
 }

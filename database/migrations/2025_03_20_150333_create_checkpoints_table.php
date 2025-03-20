@@ -11,10 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('competition_group', function (Blueprint $table) {
+        Schema::create('checkpoints', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('competition_id')->constrained('competitions');
-            $table->foreignId('group_id')->constrained('groups');
+            $table->foreignId('place_id')->constrained('places');
+            $table->foreignId('gimcana_id')->constrained('gimcanas');
+            $table->text('challenge');
+            $table->text('clue');
+            $table->integer('order');
             $table->timestamps();
         });
     }
@@ -24,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('competition_group');
+        Schema::dropIfExists('checkpoints');
     }
 };

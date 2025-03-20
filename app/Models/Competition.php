@@ -3,37 +3,27 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Challenge;
-use App\Models\Group;
-use App\Models\Leaderboard;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Competition extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'name',
-        'challenge_id',
+        'gimcana_id',
+        'code',
+        'created_by',
         'start_date',
-        'end_date',
-        'status'
+        'status',
     ];
 
-    protected $casts = [
-        'start_date' => 'datetime',
-        'end_date' => 'datetime'
-    ];
-
-    public function challenge()
+    public function gimcana()
     {
-        return $this->belongsTo(Challenge::class);
+        return $this->belongsTo(Gimcana::class);
     }
 
-    public function groups()
+    public function createdBy()
     {
-        return $this->belongsToMany(Group::class);
-    }
-
-    public function leaderboard()
-    {
-        return $this->hasMany(Leaderboard::class);
+        return $this->belongsTo(User::class, 'created_by');
     }
 }
