@@ -20,6 +20,6 @@ jobs:
           server: ${{ secrets.FTP_HOST }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps  # Usa FTPS porque tu servidor requiere seguridad
+          protocol: ftps
           port: 21
           local-dir: ./  # Carpeta local que estás subiendo
