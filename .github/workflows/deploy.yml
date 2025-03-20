@@ -3,7 +3,7 @@ name: Deploy to FTP
 on:
   push:
     branches:
-      - servidor  # La rama que activará el despliegue
+      - servidor
 
 jobs:
   deploy:
