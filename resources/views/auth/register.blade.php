@@ -23,7 +23,7 @@
                     @else
                         <span class="error-message"></span>
                     @endif
-                </div>
+                </div> 
                 <div class="input-group">
                     <input type="email" name="email" placeholder="Email" value="{{ old('email') }}" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300">
                     @if ($errors->has('email'))
