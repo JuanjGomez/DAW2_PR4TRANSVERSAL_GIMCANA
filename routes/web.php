@@ -24,11 +24,27 @@ Route::get('/gimcana', [GimcanaController::class, 'showGimcanaForm'])->name('gim
 Route::post('/gimcana/create', [GimcanaController::class, 'createGimcana'])->name('gimcana.create')->middleware('auth');
 Route::post('/gimcana/join', [GimcanaController::class, 'joinGimcana'])->name('gimcana.join')->middleware('auth');
 
+Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gimcana.get')->middleware('auth');
+
 Route::middleware(['auth'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     });
 
+
+Route::get('/admin/dashboard', function () {
+    return view('admin.dashboard');
+})->middleware('auth');
+
+    // Rutas para Places
+    Route::get('/places', [PlaceController::class, 'index']);
+    Route::post('/places', [PlaceController::class, 'store']);
+    Route::get('/places/{place}', [PlaceController::class, 'show']);
+    Route::put('/places/{place}', [PlaceController::class, 'update']);
+    Route::delete('/places/{place}', [PlaceController::class, 'destroy']);
+});
+
+Route::middleware(['auth'])->group(function () {
     Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
 
     Route::get('/gimcanas', [GimcanaController::class, 'index']);
