@@ -22,8 +22,7 @@ Route::post('/register', [RegisterController::class, 'register']);
 Route::get('/gimcana', [GimcanaController::class, 'showGimcanaForm'])->name('gimcana.form')->middleware('auth');
 Route::post('/gimcana/create', [GimcanaController::class, 'createGimcana'])->name('gimcana.create')->middleware('auth');
 Route::post('/gimcana/join', [GimcanaController::class, 'joinGimcana'])->name('gimcana.join')->middleware('auth');
-<<<<<<< HEAD
-=======
+
 Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gimcana.get')->middleware('auth');
 
 Route::middleware(['auth'])->group(function () {
@@ -31,22 +30,11 @@ Route::middleware(['auth'])->group(function () {
         return view('admin.dashboard');
     });
 
-<<<<<<< HEAD
-
-Route::middleware(['auth'])->group(function () {
-    // Ruta del dashboard
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard');
-    });
->>>>>>> aina
 
 Route::get('/admin/dashboard', function () {
     return view('admin.dashboard');
 })->middleware('auth');
 
-<<<<<<< HEAD
-Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard')->middleware('auth');
-=======
     // Rutas para Places
     Route::get('/places', [PlaceController::class, 'index']);
     Route::post('/places', [PlaceController::class, 'store']);
@@ -54,8 +42,8 @@ Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.
     Route::put('/places/{place}', [PlaceController::class, 'update']);
     Route::delete('/places/{place}', [PlaceController::class, 'destroy']);
 });
->>>>>>> aina
-=======
+
+Route::middleware(['auth'])->group(function () {
     Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
 
     Route::get('/gimcanas', [GimcanaController::class, 'index']);
@@ -78,4 +66,3 @@ Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.
     Route::post('/challenge-answers', [ChallengeAnswerController::class, 'store']);
     Route::post('/challenge-answers/verify', [ChallengeAnswerController::class, 'verifyAnswer']);
 });
->>>>>>> d254a8c72527abdebc9224133c0872122a41d329
