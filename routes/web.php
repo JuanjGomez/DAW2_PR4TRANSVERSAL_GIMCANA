@@ -29,9 +29,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/gimcanas', [GimcanaController::class, 'index']);
     Route::post('/gimcanas', [GimcanaController::class, 'store']);
 
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/map', [MapController::class, 'index'])->name('map.index');
+    // Rutas para Places
+    Route::get('/places', [PlaceController::class, 'index']);
+    Route::post('/places', [PlaceController::class, 'store']);
+    Route::get('/places/{place}', [PlaceController::class, 'show']);
     Route::put('/places/{place}', [PlaceController::class, 'update']);
     Route::delete('/places/{place}', [PlaceController::class, 'destroy']);
 });
