@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class GroupMember extends Model
 {
     use HasFactory;
+
+    protected $table = 'group_members';
 
     protected $fillable = [
         'group_id',
@@ -23,4 +24,5 @@ class GroupMember extends Model
     {
         return $this->belongsTo(User::class);
     }
+
 }

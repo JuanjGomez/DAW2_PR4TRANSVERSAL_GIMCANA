@@ -2,23 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
-class GroupCheckpoint extends Model
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+class ChallengeAnswers extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'group_id',
-        'checkpoint_id',
-        'completed',
-    ];
+    protected $table = 'challenge_answers';
 
-    public function group()
-    {
-        return $this->belongsTo(Group::class);
-    }
+    protected $fillable = [
+        'checkpoint_id',
+        'answer',
+        'is_correct',
+    ];
 
     public function checkpoint()
     {

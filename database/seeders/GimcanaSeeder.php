@@ -16,11 +16,17 @@ class GimcanaSeeder extends Seeder
         Gimcana::create([
             'name' => 'Gimcana 1',
             'description' => 'Gimcana 1',
+            'max_groups' => 10,
+            'max_users_per_group' => 10,
+            'status' => 'waiting',
         ]);
 
         Gimcana::create([
             'name' => 'Gimcana 2',
             'description' => 'Gimcana 2',
+            'max_groups' => 10,
+            'max_users_per_group' => 10,
+            'status' => 'waiting',
         ]);
 
     }
