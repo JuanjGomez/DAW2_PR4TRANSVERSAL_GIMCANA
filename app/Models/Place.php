@@ -19,7 +19,12 @@ class Place extends Model
 
     public function tags()
     {
-        return $this->belongsToMany(Tag::class, 'place_tag');
+        return $this->belongsToMany(Tag::class);
+    }
+
+    public function checkpoints()
+    {
+        return $this->hasMany(Checkpoint::class);
     }
 
     public function favoriteByUsers()

@@ -30,6 +30,47 @@
             border-color: #10b981;
             background-color: #f0fdf4;
         }
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .tag {
+            padding: 0.25rem 0.75rem;
+            background-color: #e5e7eb;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tag.selected {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .tag:hover {
+            background-color: #d1d5db;
+        }
+        
+        .tag.selected:hover {
+            background-color: #2563eb;
+        }
+        
+        .new-tag-form {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .new-tag-form input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -40,9 +81,12 @@
         <div class="mb-6">
             <div class="border-b border-gray-200">
                 <div class="flex justify-between">
-                    <div>
+                    <div class="flex">
                         <button onclick="showTab('places')" class="tab-btn py-4 px-6 border-b-2 font-medium border-blue-500 text-blue-600" data-tab="places">
                             Lugares
+                        </button>
+                        <button onclick="showTab('tags')" class="tab-btn py-4 px-6 border-b-2 font-medium" data-tab="tags">
+                            Etiquetas
                         </button>
                     </div>
                     <div class="flex">
@@ -59,43 +103,76 @@
 
         <!-- Contenido de Lugares -->
         <div id="places-tab" class="tab-content">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Formulario de lugares -->
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 class="text-xl font-bold mb-4">Añadir Nuevo Lugar</h2>
-                    <form id="placeForm">
-                        <div class="mb-4">
-                            <label for="name" class="block text-gray-700">Nombre</label>
-                            <input type="text" id="name" name="name" class="w-full px-4 py-2 border rounded-lg" required>
-                        </div>
-                        <div class="mb-4">
-                            <label for="address" class="block text-gray-700">Dirección</label>
-                            <input type="text" id="address" name="address" class="w-full px-4 py-2 border rounded-lg" required>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label for="latitude" class="block text-gray-700">Latitud</label>
-                                <input type="number" step="any" id="latitude" name="latitude" class="w-full px-4 py-2 border rounded-lg" required>
-                            </div>
-                            <div>
-                                <label for="longitude" class="block text-gray-700">Longitud</label>
-                                <input type="number" step="any" id="longitude" name="longitude" class="w-full px-4 py-2 border rounded-lg" required>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <label for="icon" class="block text-gray-700">Icono (opcional)</label>
-                            <input type="text" id="icon" name="icon" class="w-full px-4 py-2 border rounded-lg">
-                        </div>
-                        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                            Guardar Lugar
-                        </button>
-                    </form>
+            <h2 class="text-2xl font-bold mb-4">Gestión de Lugares</h2>
+            
+            <!-- Selector de etiquetas existentes -->
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold mb-2">Filtrar por etiquetas</h3>
+                <div id="tag-container" class="tag-container"></div>
+            </div>
+            
+            <!-- Formulario de lugares -->
+            <form id="place-form" class="mb-8 bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-bold mb-4">Añadir Nuevo Lugar</h3>
+                <div class="mb-4">
+                    <label for="name" class="block text-gray-700">Nombre</label>
+                    <input type="text" id="name" name="name" class="w-full px-4 py-2 border rounded-lg" required>
                 </div>
+                <div class="mb-4">
+                    <label for="address" class="block text-gray-700">Dirección</label>
+                    <input type="text" id="address" name="address" class="w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="latitude" class="block text-gray-700">Latitud</label>
+                        <input type="number" step="any" id="latitude" name="latitude" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label for="longitude" class="block text-gray-700">Longitud</label>
+                        <input type="number" step="any" id="longitude" name="longitude" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="icon" class="block text-gray-700">Icono (opcional)</label>
+                    <input type="text" id="icon" name="icon" class="w-full px-4 py-2 border rounded-lg">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Etiquetas del lugar</label>
+                    <div id="place-tags-container" class="tag-container"></div>
+                </div>
+                <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                    Guardar Lugar
+                </button>
+            </form>
+            
+            <!-- Lista de lugares -->
+            <div id="places-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Los lugares se cargarán dinámicamente aquí -->
+            </div>
+        </div>
 
-                <!-- Lista de lugares -->
-                <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 class="text-xl font-bold mb-4">Lugares Guardados</h2>
-                    <div id="placesList" class="space-y-4"></div>
+        <!-- Contenido de Etiquetas -->
+        <div id="tags-tab" class="tab-content hidden">
+            <h2 class="text-2xl font-bold mb-4">Gestión de Etiquetas</h2>
+            
+            <!-- Formulario para crear etiquetas -->
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+                <h3 class="text-xl font-bold mb-4">Crear Nueva Etiqueta</h3>
+                <div class="flex gap-4">
+                    <input type="text" id="new-tag-input" placeholder="Nombre de la etiqueta..." 
+                           class="flex-1 px-4 py-2 border rounded-lg">
+                    <button onclick="createNewTag()" 
+                            class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                        Crear Etiqueta
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Lista de etiquetas -->
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-xl font-bold mb-4">Etiquetas Existentes</h3>
+                <div id="tags-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Las etiquetas se cargarán dinámicamente aquí -->
                 </div>
             </div>
         </div>
@@ -114,6 +191,16 @@
                         <div class="mb-4">
                             <label for="gimcana-description" class="block text-gray-700">Descripción</label>
                             <textarea id="gimcana-description" name="description" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="gimcana-max-groups" class="block text-gray-700">Máximo de grupos</label>
+                                <input type="number" id="gimcana-max-groups" name="max_groups" min="1" class="w-full px-4 py-2 border rounded-lg" required>
+                            </div>
+                            <div>
+                                <label for="gimcana-max-users" class="block text-gray-700">Máximo de usuarios por grupo</label>
+                                <input type="number" id="gimcana-max-users" name="max_users_per_group" min="1" class="w-full px-4 py-2 border rounded-lg" required>
+                            </div>
                         </div>
                         <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
                             Guardar Gimcana
@@ -205,5 +292,23 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{{ asset('js/dashboard.js') }}"></script>
+    <script>
+        // Función para crear nueva etiqueta
+        function createNewTag() {
+            const input = document.getElementById('new-tag-input');
+            const name = input.value.trim();
+            
+            if (name) {
+                createTag(name).then(newTag => {
+                    if (newTag) {
+                        input.value = '';
+                        showSuccess('Etiqueta creada exitosamente');
+                    }
+                });
+            } else {
+                showError('El nombre de la etiqueta no puede estar vacío');
+            }
+        }
+    </script>
 </body>
 </html>

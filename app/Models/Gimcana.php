@@ -12,7 +12,9 @@ class Gimcana extends Model
 
     protected $fillable = [
         'name',
-        'description'
+        'description',
+        'max_groups',
+        'max_users_per_group'
     ];
 
     public function checkpoints()

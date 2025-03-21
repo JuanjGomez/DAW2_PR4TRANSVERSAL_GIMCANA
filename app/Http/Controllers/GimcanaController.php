@@ -25,7 +25,9 @@ class GimcanaController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
-                'description' => 'required|string'
+                'description' => 'required|string',
+                'max_groups' => 'required|integer|min:1',
+                'max_users_per_group' => 'required|integer|min:1'
             ]);
 
             if ($validator->fails()) {
@@ -35,7 +37,9 @@ class GimcanaController extends Controller
 
             $gimcana = Gimcana::create([
                 'name' => $request->name,
-                'description' => $request->description
+                'description' => $request->description,
+                'max_groups' => $request->max_groups,
+                'max_users_per_group' => $request->max_users_per_group
             ]);
 
             Log::info('Gimcana created successfully: ' . $gimcana->id);

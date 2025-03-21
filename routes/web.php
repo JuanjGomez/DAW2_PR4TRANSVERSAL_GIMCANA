@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\CheckpointController;
 use App\Http\Controllers\ChallengeAnswerController;
+use App\Http\Controllers\TagController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -49,4 +50,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkpoints/{checkpoint}/answers', [ChallengeAnswerController::class, 'index']);
     Route::post('/challenge-answers', [ChallengeAnswerController::class, 'store']);
     Route::post('/challenge-answers/verify', [ChallengeAnswerController::class, 'verifyAnswer']);
+
+    // Rutas para etiquetas
+    Route::get('/tags', [TagController::class, 'index']);
+    Route::post('/tags', [TagController::class, 'store']);
+    Route::delete('/tags/{tag}', [TagController::class, 'destroy']);
+    Route::get('/tags/{tag}/places', [TagController::class, 'getPlacesByTag']);
+
+    // Ruta para actualizar etiquetas de un lugar
+    Route::put('/places/{place}/tags', [PlaceController::class, 'updateTags']);
 });
