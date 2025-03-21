@@ -6,6 +6,7 @@ use App\Models\Gimcana;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Models\Group;
 
 class GimcanaController extends Controller
 {
@@ -92,7 +93,26 @@ class GimcanaController extends Controller
 
     public function getGimcanas()
     {
-        $gimcanas = Gimcana::all();
-        return response()->json($gimcanas);
+        try{
+            $gimcanas = Gimcana::all();
+            $gimcanas->each(function ($gimcana) {
+                $gimcana->current_groups = $gimcana->groups->count();
+            });
+            return response()->json($gimcanas);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener gimcanas: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al obtener las gimcanas'], 500);
+        }
+    }
+
+    public function showGimcana($id)
+    {
+        try {
+            $gimcana = Gimcana::with('groups')->findOrFail($id);
+            return response()->json($gimcana);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener detalles de la gimcana: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al obtener los detalles de la gimcana'], 500);
+        }
     }
 }

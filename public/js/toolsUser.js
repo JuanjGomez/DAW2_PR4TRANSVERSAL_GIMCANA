@@ -17,37 +17,43 @@ function loadGimcanas() {
     fetch('/api/gimcanas')
         .then(response => response.json())
         .then(gimcanas => {
-            const list = document.getElementById('gimcanaList')
-            list.innerHTML = ''
+            const list = document.getElementById('gimcanaList');
+            list.innerHTML = '';
             gimcanas.forEach(gimcana => {
-                const listItem = document.createElement('li')
-                listItem.textContent = gimcana.name
-                listItem.addEventListener('click', () => {
-                    joinGimcana(gimcana.id)
-                })
-                list.appendChild(listItem)
+                const maxPlayers = gimcana.max_groups * gimcana.max_users_per_group
+                const currentPlayers = gimcana.current_groups * gimcana.max_users_per_group
+                const card = document.createElement('div')
+                card.className = 'gimcana-card'
+                card.innerHTML = `
+                    <span>${gimcana.name}</span>
+                    <span>${currentPlayers} / ${maxPlayers} <i class="fas fa-user icon"></i></span>
+                `
+                card.addEventListener('click', () => openGimcanaDetails(gimcana.id))
+                list.appendChild(card)
             })
         })
         .catch(error => console.error('Error al cargar las gimcanas:', error))
 }
 
-function joinGimcana(gimcanaId) {
-    fetch(`/gimcana/join`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ id: gimcanaId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Te has unido a la gimcana correctamente!')
-            document.getElementById('gimcanaModal').classList.add('hidden')
-        } else {
-            alert('Error al unirse a la gimcana.')
-        }
-    })
-    .catch(error => console.error('Error al unirse a la gimcana:', error))
+function openGimcanaDetails(gimcanaId) {
+    fetch(`/api/gimcanas/${gimcanaId}`)
+        .then(response => response.json())
+        .then(gimcana => {
+            const modal = document.getElementById('gimcanaDetailsModal')
+            const modalContent = document.getElementById('gimcanaDetailsContent')
+            modalContent.innerHTML = `
+                <h2 class="text-2xl font-bold mb-4">${gimcana.name}</h2>
+                <p>Límite de usuarios por grupo: ${gimcana.max_users_per_group}</p>
+                <h3 class="text-xl font-bold mt-4">Grupos:</h3>
+                <ul>
+                    ${gimcana.groups.map(group => `<li>${group.name}</li>`).join('')}
+                </ul>
+            `
+            modal.classList.remove('hidden')
+        })
+        .catch(error => console.error('Error al cargar los detalles de la gimcana:', error))
 }
+
+document.getElementById('closeDetailsModal').addEventListener('click', () => {
+    document.getElementById('gimcanaDetailsModal').classList.add('hidden')
+})

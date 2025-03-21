@@ -25,6 +25,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     });
+    // Rutas para Map
+    Route::get('/map', [MapController::class, 'index'])->name('map.index');
+    Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas']);
+    Route::get('/api/gimcanas/{id}', [GimcanaController::class, 'showGimcana']);
 
     // Rutas para Gimcanas
     Route::get('/gimcanas', [GimcanaController::class, 'index']);
