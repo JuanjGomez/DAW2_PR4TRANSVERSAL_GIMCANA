@@ -15,6 +15,9 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('description');
+            $table->integer('max_groups');
+            $table->integer('max_users_per_group');
+            $table->enum('status', ['active', 'waiting'])->default('waiting');
             $table->timestamps();
         });
     }

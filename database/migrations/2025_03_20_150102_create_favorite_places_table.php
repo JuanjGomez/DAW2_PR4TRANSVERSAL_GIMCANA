@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('favorite_places', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('user_id')->constrained('user');
             $table->foreignId('place_id')->constrained('places');
             $table->timestamps();
         });

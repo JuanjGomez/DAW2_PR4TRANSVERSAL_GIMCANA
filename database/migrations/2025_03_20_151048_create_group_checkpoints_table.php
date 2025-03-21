@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('group_checkpoints', function (Blueprint $table) {
+        Schema::create('user_checkpoints', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('user');
             $table->foreignId('group_id')->constrained('groups');
             $table->foreignId('checkpoint_id')->constrained('checkpoints');
             $table->boolean('completed')->default(false);

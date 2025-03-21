@@ -29,7 +29,7 @@ class AuthController extends Controller
             if ($user->role->name === 'admin') {
                 return redirect()->intended('/admin/dashboard');
             } else {
-                return redirect()->route('gimcana.form');
+                return redirect()->route('map.index');
             }
         }
 
