@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mapa Usuario</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="{{ asset('css/userIndex.css') }}">
     <style>
@@ -40,17 +41,22 @@
     <!-- Botones superiores -->
     <div class="map-buttons">
         <button id="lobbiesBtn" class="map-button">
-            Lobbies
+            Gimcanas
         </button>
         <button id="filtrosBtn" class="map-button">
             Filtros
         </button>
     </div>
 
-    <!-- Botones de Lobbies -->
-    <div id="lobbyButtons" class="hidden lobby-buttons">
-        <button class="lobby-button">Crear Lobby</button>
-        <button class="lobby-button">Unirse a Lobby</button>
+    <!-- Modal para seleccionar Gimcana -->
+    <div id="gimcanaModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+        <div id="modal-content">
+            <h2 class="text-2xl font-bold mb-4">Selecciona una Gimcana</h2>
+            <ul id="gimcanaList" class="list-disc pl-5">
+                <!-- Lista de gimcanas se llenará dinámicamente -->
+            </ul>
+            <button id="closeModal" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300 mt-4">Cerrar</button>
+        </div>
     </div>
 
     <!-- Mapa -->
