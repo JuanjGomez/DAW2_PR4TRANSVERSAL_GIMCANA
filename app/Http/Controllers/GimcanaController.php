@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use App\Models\Group;
+use App\Models\Gimcana;
 
 class GimcanaController extends Controller
 {
@@ -51,8 +52,14 @@ class GimcanaController extends Controller
         }
 
         // Unir al usuario al grupo
-        $group->members()->attach(auth()->id());
+        // $group->members()->attach(auth()->id());
 
         return redirect()->route('user.dashboard')->with('success', 'Te has unido a la gimcana correctamente!');
+    }
+
+    public function getGimcanas()
+    {
+        $gimcanas = Gimcana::all();
+        return response()->json($gimcanas);
     }
 }

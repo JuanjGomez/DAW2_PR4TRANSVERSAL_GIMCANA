@@ -52,5 +52,46 @@
 }
 
 .hidden {
-    display: none;
+    display: none !important;
+}
+
+#gimcanaModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /* Fondo semi-transparente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000; /* Asegúrate de que sea más alto que el mapa */
+}
+
+#gimcanaModal .modal-content {
+    background-color: #1f2937; /* Color de fondo */
+    color: white; /* Texto blanco para contraste */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#modal-content {
+    background-color: #1f2937; /* Color de fondo */
+    color: white; /* Texto blanco para contraste */
+    padding: 30px;
+    border-radius: 10px;
+    width: 80%; /* Más amplio */
+    max-width: 600px; /* Ancho máximo */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#gimcanaList li {
+    cursor: pointer;
+    padding: 10px;
+    transition: background-color 0.3s;
+}
+
+#gimcanaList li:hover {
+    background-color: #374151; /* Color al pasar el ratón */
 }

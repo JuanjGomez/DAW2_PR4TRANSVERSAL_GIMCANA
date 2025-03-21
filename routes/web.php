@@ -20,6 +20,7 @@ Route::post('/register', [RegisterController::class, 'register']);
 Route::get('/gimcana', [GimcanaController::class, 'showGimcanaForm'])->name('gimcana.form')->middleware('auth');
 Route::post('/gimcana/create', [GimcanaController::class, 'createGimcana'])->name('gimcana.create')->middleware('auth');
 Route::post('/gimcana/join', [GimcanaController::class, 'joinGimcana'])->name('gimcana.join')->middleware('auth');
+Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gimcana.get')->middleware('auth');
 
 Route::get('/admin/dashboard', function () {
     return view('admin.dashboard');
