@@ -20,6 +20,16 @@
         .checkpoint-card.active {
             border-left-color: #10b981;
         }
+        .answer-container {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+        }
+        .answer-container.correct {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -150,6 +160,29 @@
                             <label for="cp-order" class="block text-gray-700">Orden</label>
                             <input type="number" id="cp-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
                         </div>
+
+                        <!-- Sección de respuestas -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 font-bold mb-2">Respuestas</label>
+                            <div id="answers-container">
+                                <div class="answer-container">
+                                    <div class="mb-2">
+                                        <label class="block text-gray-700">Respuesta 1</label>
+                                        <input type="text" name="answers[0][answer]" class="w-full px-4 py-2 border rounded-lg" required>
+                                        <div class="mt-2">
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" name="correct_answer" value="0" class="form-radio" required>
+                                                <span class="ml-2">Respuesta correcta</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" onclick="addAnswer()" class="mt-2 bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600">
+                                Añadir Respuesta
+                            </button>
+                        </div>
+
                         <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
                             Guardar Punto de Control
                         </button>

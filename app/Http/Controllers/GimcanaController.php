@@ -18,8 +18,8 @@ class GimcanaController extends Controller
             $gimcanas = Gimcana::all();
             return response()->json($gimcanas);
         } catch (\Exception $e) {
-            Log::error('Error al obtener gimcanas: ' . $e->getMessage());
-            return response()->json(['error' => 'Error al obtener las gimcanas'], 500);
+            Log::error('Error fetching gimcanas: ' . $e->getMessage());
+            return response()->json(['error' => 'Error fetching gimcanas'], 500);
         }
     }
 
@@ -32,6 +32,7 @@ class GimcanaController extends Controller
             ]);
 
             if ($validator->fails()) {
+                Log::warning('Validation failed: ' . json_encode($validator->errors()));
                 return response()->json(['errors' => $validator->errors()], 422);
             }
 
@@ -40,10 +41,12 @@ class GimcanaController extends Controller
                 'description' => $request->description
             ]);
 
+            Log::info('Gimcana created successfully: ' . $gimcana->id);
             return response()->json($gimcana, 201);
+
         } catch (\Exception $e) {
-            Log::error('Error al crear gimcana: ' . $e->getMessage());
-            return response()->json(['error' => 'Error al crear la gimcana'], 500);
+            Log::error('Error creating gimcana: ' . $e->getMessage());
+            return response()->json(['error' => 'Error creating gimcana'], 500);
         }
     }
 
