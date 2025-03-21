@@ -4,14 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Gimcana;
 use Illuminate\Http\Request;
-<<<<<<< HEAD
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
-=======
 use Illuminate\Support\Str;
 use App\Models\Group;
 use App\Models\Gimcana;
->>>>>>> fc898cb617f3cd6fdf8fb0a4d216429ddc9f3e90
 
 class GimcanaController extends Controller
 {
@@ -95,8 +92,6 @@ class GimcanaController extends Controller
     {
         return view('gimcana');
     }
-<<<<<<< HEAD
-=======
 
     public function createGimcana(Request $request)
     {
@@ -146,5 +141,4 @@ class GimcanaController extends Controller
         $gimcanas = Gimcana::all();
         return response()->json($gimcanas);
     }
->>>>>>> fc898cb617f3cd6fdf8fb0a4d216429ddc9f3e90
 }
