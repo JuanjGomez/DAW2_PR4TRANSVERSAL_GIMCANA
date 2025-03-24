@@ -175,9 +175,9 @@
         </div>
 
         <!-- Contenido de Checkpoints -->
-        <div id="checkpoints-tab" class="tab-content hidden">
+        <div id="checkpoints-tab" class="tab-content">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Formulario de checkpoints -->
+                <!-- Formulario de puntos de control -->
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <h2 class="text-xl font-bold mb-4">Añadir Nuevo Punto de Control</h2>
                     <form id="checkpointForm">
@@ -213,10 +213,12 @@
                     </form>
                 </div>
 
-                <!-- Lista de checkpoints -->
+                <!-- Lista de puntos de control -->
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <h2 class="text-xl font-bold mb-4">Puntos de Control</h2>
-                    <div id="checkpointsList" class="space-y-4"></div>
+                    <div id="checkpointsList" class="space-y-4">
+                        <!-- Los puntos de control se cargarán dinámicamente aquí -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -321,6 +323,79 @@
             loadCheckpoints();
             setupForms();
             showTab('places');
+
+            // Cargar lugares y gimcanas en los selectores
+            fetch('/api/places')
+                .then(response => response.json())
+                .then(places => {
+                    const placeSelect = document.getElementById('cp-place');
+                    places.forEach(place => {
+                        const option = document.createElement('option');
+                        option.value = place.id;
+                        option.textContent = place.name;
+                        placeSelect.appendChild(option);
+                    });
+                });
+
+            fetch('/api/gimcanas')
+                .then(response => response.json())
+                .then(gimcanas => {
+                    const gimcanaSelect = document.getElementById('cp-gimcana');
+                    gimcanas.forEach(gimcana => {
+                        const option = document.createElement('option');
+                        option.value = gimcana.id;
+                        option.textContent = gimcana.name;
+                        gimcanaSelect.appendChild(option);
+                    });
+                });
+
+            // Manejar el envío del formulario
+            document.getElementById('checkpointForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+
+                const data = {
+                    place_id: formData.get('place_id'),
+                    gimcana_id: formData.get('gimcana_id'),
+                    challenge: formData.get('challenge'),
+                    clue: formData.get('clue'),
+                    order: parseInt(formData.get('order'))
+                };
+
+                fetch('/api/checkpoints', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => {
+                            throw new Error(err.message || 'Error al crear el punto de control');
+                        });
+                    }
+                    return response.json();
+                })
+                .then(checkpoint => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Punto de control creado con éxito',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    loadCheckpoints();
+                    this.reset();
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al crear el punto de control',
+                        text: error.message
+                    });
+                });
+            });
         });
 
         function initMap() {
@@ -459,25 +534,6 @@
                         title: 'Error al añadir la gimcana',
                         text: error.message
                     });
-                });
-            });
-
-            // Formulario de checkpoints
-            document.getElementById('checkpointForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                fetch('/api/checkpoints', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify(Object.fromEntries(formData))
-                })
-                .then(response => response.json())
-                .then(checkpoint => {
-                    loadCheckpoints();
-                    this.reset();
                 });
             });
 
