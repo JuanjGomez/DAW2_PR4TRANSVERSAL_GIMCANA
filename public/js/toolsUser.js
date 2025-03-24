@@ -55,28 +55,123 @@ function openGimcanaDetails(gimcanaId) {
                         <div class="group-container">
                             <p>${group.name || 'Sin nombre'}</p>
                             <p>${group.members ? group.members.length : 0} / ${gimcana.max_users_per_group} <i class="fas fa-user icon"></i></p>
-                            ${group.members && group.members.length >= gimcana.max_users_per_group ? '<p>Grupo lleno</p>' : '<button class="join-group">Unirse</button>'}
+                            ${group.members && group.members.length >= gimcana.max_users_per_group ? '<p>Grupo lleno</p>' : `<button class="join-group" data-group-id="${group.id}">Unirse</button>`}
                         </div>
                     `).join('')}
                 </div>
             `
             modal.classList.remove('hidden')
 
-            // Add event listener to close button
             document.getElementById('closeDetailsModal').addEventListener('click', () => {
                 modal.classList.add('hidden')
             })
 
-            // Add event listeners to join buttons
             document.querySelectorAll('.join-group').forEach(button => {
-                button.addEventListener('click', () => {
-                    Swal.fire({
-                        title: 'Unirse al grupo',
-                        text: '¿Estás seguro de querer unirte a este grupo?',
-                        icon: 'warning',
-                    })
-                })
+                button.addEventListener('click', (event) => {
+                    const groupId = event.target.dataset.groupId;
+                    joinGroup(groupId);
+                });
             })
         })
         .catch(error => console.error('Error al cargar los detalles de la gimcana:', error))
+}
+
+function joinGroup(grupoId) {
+    fetch(`/api/group/join`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({group_id: grupoId})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            Swal.fire({
+                title: 'Ya estás en el grupo',
+                icon: 'info',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                const modalContent = document.getElementById('gimcanaDetailsContent')
+                modalContent.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">Grupo: ${data.group.name}</h2>
+                        <button id="closeMembersModal" class="text-red-500 hover:text-red-700 text-2xl font-bold">&times;</button>
+                    </div>
+                    <h3 class="text-xl font-bold mt-4">Miembros:</h3>
+                    <ul>
+                        ${data.group.members.map(member => `<li>${member.name}</li>`).join('')}
+                    </ul>
+                `;
+                document.getElementById('gimcanaDetailsModal').classList.remove('hidden')
+
+                document.getElementById('closeMembersModal').addEventListener('click', function() {
+                    Swal.fire({
+                        title: '¿Estás seguro de salir del grupo?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, salir',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            leaveGroup(grupoId) // Asegúrate de tener el grupoId disponible
+                        }
+                    })
+                })
+            })
+        } else {
+            Swal.fire({
+                title: 'Error al unirte al grupo',
+                text: data.message,
+                icon: 'error'
+            })
+        }
+    })
+    .catch(error => console.error('Error al unirte al grupo:', error))
+}
+
+function checkUserGroupStatus(gimcanaId) {
+    fetch(`/api/user/group-status/${gimcanaId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.inGroup) {
+                // Mostrar el grupo actual del usuario
+                openGimcanaDetails(data.groupId)
+            } else {
+                // Permitir al usuario unirse a un grupo
+                loadGimcanas()
+            }
+        })
+        .catch(error => console.error('Error al verificar el estado del grupo del usuario:', error))
+}
+
+function leaveGroup(grupoId) {
+    fetch(`/api/group/leave`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({group_id: grupoId})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.success) {
+            Swal.fire({
+                title: 'Has salido del grupo',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            }).then(() => {
+                document.getElementById('gimcanaDetailsModal').classList.add('hidden')
+            });
+        } else {
+            Swal.fire({
+                title: 'Error al salir del grupo',
+                text: data.message,
+                icon: 'error'
+            })
+        }
+    })
+    .catch(error => console.error('Error al salir del grupo:', error))
 }
