@@ -8,6 +8,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\CheckpointController;
 use App\Http\Controllers\ChallengeAnswerController;
+use App\Http\Controllers\MapController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -19,13 +20,17 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
 
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
 // Rutas protegidas que requieren autenticación
 Route::middleware(['auth'])->group(function () {
     // Ruta del dashboard
     Route::get('/admin/dashboard', function () {
         return view('admin.dashboard');
     });
-Route::get('/gimcana', [GimcanaController::class, 'showGimcanaForm'])->name('gimcana.form')->middleware('auth');
+    Route::get('/map', [MapController::class, 'index'])->name('map.index');
+    Route::get('/api/gimcanas/{id}', [GimcanaController::class, 'showGimcana']);
+Route::get('/gimcana', [GimcanaController::class, 'showGimcanaForm'])->name('gimcana.form');
 Route::post('/gimcana/create', [GimcanaController::class, 'createGimcana'])->name('gimcana.create')->middleware('auth');
 Route::post('/gimcana/join', [GimcanaController::class, 'joinGimcana'])->name('gimcana.join')->middleware('auth');
 Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gimcana.get')->middleware('auth');

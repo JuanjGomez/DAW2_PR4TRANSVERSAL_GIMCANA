@@ -96,10 +96,13 @@ class GimcanaController extends Controller
 
     public function getGimcanas()
     {
-        try{
-            $gimcanas = Gimcana::all();
+        try {
+            $gimcanas = Gimcana::with('groups.members')->get();
             $gimcanas->each(function ($gimcana) {
                 $gimcana->current_groups = $gimcana->groups->count();
+                $gimcana->current_players = $gimcana->groups->sum(function ($group) {
+                    return $group->members->count();
+                });
             });
             return response()->json($gimcanas);
         } catch (\Exception $e) {
@@ -111,7 +114,7 @@ class GimcanaController extends Controller
     public function showGimcana($id)
     {
         try {
-            $gimcana = Gimcana::with('groups')->findOrFail($id);
+            $gimcana = Gimcana::with('groups.members')->findOrFail($id);
             return response()->json($gimcana);
         } catch (\Exception $e) {
             Log::error('Error al obtener detalles de la gimcana: ' . $e->getMessage());
