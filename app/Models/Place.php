@@ -17,6 +17,7 @@ class Place extends Model
         'latitude',
         'longitude',
         'icon',
+        'description'
     ];
 
     public function tags()

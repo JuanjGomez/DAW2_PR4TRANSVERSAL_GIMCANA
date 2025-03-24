@@ -23,47 +23,37 @@ class GimcanaController extends Controller
 
     public function store(Request $request)
     {
-        try {
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'description' => 'required|string'
-            ]);
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string|max:255',
+            'max_groups' => 'required|integer|min:1',
+            'max_users_per_group' => 'required|integer|min:1',
+        ]);
 
-            if ($validator->fails()) {
-                Log::warning('Validation failed: ' . json_encode($validator->errors()));
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
+        $gimcana = Gimcana::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'max_groups' => $request->max_groups,
+            'max_users_per_group' => $request->max_users_per_group,
+            'status' => 'waiting' // Por defecto, la gimcana estará en estado 'waiting'
+        ]);
 
-            $gimcana = Gimcana::create([
-                'name' => $request->name,
-                'description' => $request->description
-            ]);
-
-            Log::info('Gimcana created successfully: ' . $gimcana->id);
-            return response()->json($gimcana, 201);
-
-        } catch (\Exception $e) {
-            Log::error('Error creating gimcana: ' . $e->getMessage());
-            return response()->json(['error' => 'Error creating gimcana'], 500);
-        }
+        return response()->json($gimcana, 201);
     }
 
     public function show(Gimcana $gimcana)
     {
-        try {
-            return response()->json($gimcana->load('checkpoints.place'), 200, ['Content-Type' => 'application/json']);
-        } catch (\Exception $e) {
-            Log::error('Error al obtener gimcana: ' . $e->getMessage());
-            return response()->json(['error' => 'Error al obtener la gimcana'], 500);
-        }
+        return response()->json($gimcana);
     }
 
     public function update(Request $request, Gimcana $gimcana)
     {
         try {
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'description' => 'required|string'
+                'name' => 'sometimes|string|max:255',
+                'description' => 'sometimes|string',
+                'max_groups' => 'sometimes|integer|min:1',
+                'max_users_per_group' => 'sometimes|integer|min:1'
             ]);
 
             if ($validator->fails()) {
@@ -71,7 +61,7 @@ class GimcanaController extends Controller
             }
 
             $gimcana->update($request->all());
-            return response()->json($gimcana, 200, ['Content-Type' => 'application/json']);
+            return response()->json($gimcana, 200);
         } catch (\Exception $e) {
             Log::error('Error al actualizar gimcana: ' . $e->getMessage());
             return response()->json(['error' => 'Error al actualizar la gimcana'], 500);
@@ -82,7 +72,7 @@ class GimcanaController extends Controller
     {
         try {
             $gimcana->delete();
-            return response()->json(null, 204);
+            return response()->json(['message' => 'Gimcana eliminada correctamente'], 200);
         } catch (\Exception $e) {
             Log::error('Error al eliminar gimcana: ' . $e->getMessage());
             return response()->json(['error' => 'Error al eliminar la gimcana'], 500);

@@ -6,82 +6,84 @@ use App\Models\Place;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class PlaceController extends Controller
 {
     public function index()
     {
-        try {
-            $places = Place::all();
-            return response()->json($places);
-        } catch (\Exception $e) {
-            Log::error('Error fetching places: ' . $e->getMessage());
-            return response()->json(['error' => 'Error fetching places'], 500);
-        }
+        return Place::all();
     }
 
     public function store(Request $request)
     {
-        try {
-            $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
-                'address' => 'required|string',
-                'latitude' => 'required|numeric|between:-90,90',
-                'longitude' => 'required|numeric|between:-180,180',
-                'icon' => 'nullable|string'
-            ]);
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'required|string|max:255',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'icon' => 'required|string|max:255',
+            'tags' => 'sometimes|array',
+            'tags.*' => 'exists:tags,id'
+        ]);
 
-            if ($validator->fails()) {
-                Log::warning('Validation failed: ' . json_encode($validator->errors()));
-                return response()->json(['errors' => $validator->errors()], 422);
-            }
+        $place = Place::create($validatedData);
 
-            $place = Place::create($request->all());
-            Log::info('Place created successfully: ' . $place->id);
-            return response()->json($place, 201);
-
-        } catch (\Exception $e) {
-            Log::error('Error creating place: ' . $e->getMessage());
-            return response()->json(['error' => 'Error creating place'], 500);
+        // Asociar tags si se proporcionan
+        if ($request->has('tags')) {
+            $place->tags()->sync($request->tags);
         }
+
+        return response()->json($place->load('tags'), 201);
     }
 
     public function show(Place $place)
     {
-        try {
-            return response()->json($place);
-        } catch (\Exception $e) {
-            Log::error('Error fetching place: ' . $e->getMessage());
-            return response()->json(['error' => 'Error fetching place'], 500);
-        }
+        return $place->load('tags');
     }
 
     public function update(Request $request, Place $place)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'address' => 'required|string',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'icon' => 'nullable|string'
+        $validatedData = $request->validate([
+            'name' => 'sometimes|string|max:255',
+            'address' => 'sometimes|string|max:255',
+            'latitude' => 'sometimes|numeric',
+            'longitude' => 'sometimes|numeric',
+            'icon' => 'sometimes|string|max:255',
+            'description' => 'sometimes|string',
+            'tags' => 'sometimes|array',
+            'tags.*' => 'exists:tags,id'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
+        $place->update($validatedData);
+
+        // Sincronizar tags si se proporcionan
+        if ($request->has('tags')) {
+            $place->tags()->sync($request->tags);
         }
 
-        $place->update($request->all());
-        return response()->json($place);
+        return response()->json($place->load('tags'));
     }
 
     public function destroy(Place $place)
     {
+        DB::beginTransaction();
+
         try {
+            // Eliminar las relaciones en place_tag
+            $place->tags()->detach();
+            
+            // Eliminar el lugar
             $place->delete();
-            return response()->json(null, 204);
+
+            DB::commit();
+
+            // Devolver una respuesta JSON válida
+            return response()->json(['message' => 'Lugar eliminado correctamente'], 200);
         } catch (\Exception $e) {
-            Log::error('Error deleting place: ' . $e->getMessage());
-            return response()->json(['error' => 'Error deleting place'], 500);
+            DB::rollBack();
+            Log::error('Error al eliminar el lugar: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al eliminar el lugar'], 500);
         }
     }
 }
