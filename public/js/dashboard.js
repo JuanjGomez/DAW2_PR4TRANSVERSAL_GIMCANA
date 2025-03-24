@@ -357,15 +357,20 @@ function loadGimcanas() {
         const gimcanasList = document.getElementById('gimcanasList');
         gimcanasList.innerHTML = '';
         
-        // Actualizar el select de gimcanas en el formulario de checkpoints
-        updateGimcanasSelect(gimcanas);
-        
         gimcanas.forEach(gimcana => {
             const gimcanaElement = document.createElement('div');
             gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
             gimcanaElement.innerHTML = `
                 <h3 class="font-bold">${gimcana.name}</h3>
                 <p class="text-gray-600">${gimcana.description}</p>
+                <div class="mt-2">
+                    <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700">
+                        Eliminar
+                    </button>
+                    <button onclick="openEditGimcanaModal(${gimcana.id})" class="text-blue-500 hover:text-blue-700 ml-2">
+                        Editar
+                    </button>
+                </div>
             `;
             gimcanasList.appendChild(gimcanaElement);
         });
@@ -590,3 +595,66 @@ document.getElementById('edit-tags-input').addEventListener('blur', function() {
         document.getElementById('edit-tags-dropdown').classList.add('hidden');
     }, 200);
 });
+
+function deleteGimcana(gimcanaId) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "¡No podrás revertir esto!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/gimcanas/${gimcanaId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || 'Error al eliminar la gimcana');
+                    });
+                }
+                return response.json();
+            })
+            .then(() => {
+                Swal.fire(
+                    '¡Eliminado!',
+                    'La gimcana ha sido eliminada.',
+                    'success'
+                );
+                loadGimcanas();
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al eliminar la gimcana',
+                    text: error.message
+                });
+            });
+        }
+    });
+}
+
+function openEditGimcanaModal(id) {
+    fetch(`/gimcanas/${id}`)
+        .then(response => response.json())
+        .then(gimcana => {
+            document.getElementById('edit-gimcana-id').value = gimcana.id;
+            document.getElementById('edit-gimcana-name').value = gimcana.name;
+            document.getElementById('edit-gimcana-description').value = gimcana.description;
+            document.getElementById('edit-gimcana-max-groups').value = gimcana.max_groups;
+            document.getElementById('edit-gimcana-max-users-per-group').value = gimcana.max_users_per_group;
+
+            document.getElementById('editGimcanaModal').classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar la gimcana');
+        });
+}

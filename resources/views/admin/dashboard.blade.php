@@ -138,7 +138,7 @@
         </div>
 
         <!-- Contenido de Gimcanas -->
-        <div id="gimcanas-tab" class="tab-content hidden">
+        <div id="gimcanas-tab" class="tab-content">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Formulario de gimcanas -->
                 <div class="bg-white p-6 rounded-lg shadow-lg">
@@ -150,7 +150,15 @@
                         </div>
                         <div class="mb-4">
                             <label for="gimcana-description" class="block text-gray-700">Descripción</label>
-                            <textarea id="gimcana-description" name="description" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                            <textarea id="gimcana-description" name="description" class="w-full px-4 py-2 border rounded-lg" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="gimcana-max-groups" class="block text-gray-700">Número máximo de grupos</label>
+                            <input type="number" id="gimcana-max-groups" name="max_groups" class="w-full px-4 py-2 border rounded-lg" min="1" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="gimcana-max-users-per-group" class="block text-gray-700">Número máximo de usuarios por grupo</label>
+                            <input type="number" id="gimcana-max-users-per-group" name="max_users_per_group" class="w-full px-4 py-2 border rounded-lg" min="1" required>
                         </div>
                         <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
                             Guardar Gimcana
@@ -262,6 +270,35 @@
                         <button type="button" onclick="closeEditModal()" class="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600">Cancelar</button>
                         <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">Guardar</button>
                     </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal de edición de gimcana -->
+        <div id="editGimcanaModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h2 class="text-xl font-bold mb-4">Editar Gimcana</h2>
+                <form id="editGimcanaForm">
+                    <input type="hidden" id="edit-gimcana-id" name="id">
+                    <div class="mb-4">
+                        <label for="edit-gimcana-name" class="block text-gray-700">Nombre</label>
+                        <input type="text" id="edit-gimcana-name" name="name" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-gimcana-description" class="block text-gray-700">Descripción</label>
+                        <textarea id="edit-gimcana-description" name="description" class="w-full px-4 py-2 border rounded-lg" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-gimcana-max-groups" class="block text-gray-700">Número máximo de grupos</label>
+                        <input type="number" id="edit-gimcana-max-groups" name="max_groups" class="w-full px-4 py-2 border rounded-lg" min="1" required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-gimcana-max-users-per-group" class="block text-gray-700">Número máximo de usuarios por grupo</label>
+                        <input type="number" id="edit-gimcana-max-users-per-group" name="max_users_per_group" class="w-full px-4 py-2 border rounded-lg" min="1" required>
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                        Guardar Cambios
+                    </button>
                 </form>
             </div>
         </div>
@@ -383,18 +420,45 @@
             document.getElementById('gimcanaForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const formData = new FormData(this);
-                fetch('/api/gimcanas', {
+
+                const data = {
+                    name: formData.get('name'),
+                    description: formData.get('description'),
+                    max_groups: parseInt(formData.get('max_groups')),
+                    max_users_per_group: parseInt(formData.get('max_users_per_group'))
+                };
+
+                fetch('/gimcanas', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
-                    body: JSON.stringify(Object.fromEntries(formData))
+                    body: JSON.stringify(data)
                 })
-                .then(response => response.json())
-                .then(gimcana => {
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Error ${response.status}: ${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    Swal.fire(
+                        '¡Éxito!',
+                        'La gimcana ha sido añadida correctamente.',
+                        'success'
+                    );
                     loadGimcanas();
-                    this.reset();
+                    document.getElementById('gimcanaForm').reset();
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al añadir la gimcana',
+                        text: error.message
+                    });
                 });
             });
 
@@ -523,39 +587,42 @@
         }
 
         function loadGimcanas() {
-            fetch('/api/gimcanas')
-                .then(response => response.json())
-                .then(data => {
-                    gimcanas = data;
-                    const gimcanasList = document.getElementById('gimcanasList');
-                    gimcanasList.innerHTML = '';
-
-                    // Actualizar el selector de gimcanas en el formulario de checkpoints
-                    const gimcanaSelect = document.getElementById('cp-gimcana');
-                    gimcanaSelect.innerHTML = '<option value="">Selecciona una gimcana</option>';
-
-                    gimcanas.forEach(gimcana => {
-                        // Añadir al listado
-                        const gimcanaElement = document.createElement('div');
-                        gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
-                        gimcanaElement.innerHTML = `
-                            <h3 class="font-bold">${gimcana.name}</h3>
-                            <p class="text-gray-600">${gimcana.description}</p>
-                            <div class="mt-2">
-                                <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700">
-                                    Eliminar
-                                </button>
-                            </div>
-                        `;
-                        gimcanasList.appendChild(gimcanaElement);
-
-                        // Añadir al selector
-                        const option = document.createElement('option');
-                        option.value = gimcana.id;
-                        option.textContent = gimcana.name;
-                        gimcanaSelect.appendChild(option);
-                    });
+            fetch('/gimcanas', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al cargar las gimcanas');
+                }
+                return response.json();
+            })
+            .then(gimcanas => {
+                const gimcanasList = document.getElementById('gimcanasList');
+                gimcanasList.innerHTML = '';
+                
+                gimcanas.forEach(gimcana => {
+                    const gimcanaElement = document.createElement('div');
+                    gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
+                    gimcanaElement.innerHTML = `
+                        <h3 class="font-bold">${gimcana.name}</h3>
+                        <p class="text-gray-600">${gimcana.description}</p>
+                        <div class="mt-2">
+                            <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700">
+                                Eliminar
+                            </button>
+                            <button onclick="openEditGimcanaModal(${gimcana.id})" class="text-blue-500 hover:text-blue-700 ml-2">
+                                Editar
+                            </button>
+                        </div>
+                    `;
+                    gimcanasList.appendChild(gimcanaElement);
                 });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
         }
 
         function loadCheckpoints() {
@@ -654,15 +721,48 @@
         }
 
         function deleteGimcana(id) {
-            if (confirm('¿Estás seguro de que quieres eliminar esta gimcana?')) {
-                fetch(`/api/gimcanas/${id}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    }
-                })
-                .then(() => loadGimcanas());
-            }
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir esto!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/gimcanas/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => {
+                                throw new Error(err.error || 'Error al eliminar la gimcana');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(() => {
+                        Swal.fire(
+                            '¡Eliminado!',
+                            'La gimcana ha sido eliminada.',
+                            'success'
+                        );
+                        loadGimcanas();
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al eliminar la gimcana',
+                            text: error.message
+                        });
+                    });
+                }
+            });
         }
 
         function deleteCheckpoint(id) {
@@ -806,6 +906,84 @@
                 document.getElementById('edit-tags-dropdown').classList.add('hidden');
             }, 200);
         });
+
+        function openEditGimcanaModal(id) {
+            fetch(`/gimcanas/${id}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar la gimcana');
+                    }
+                    return response.json();
+                })
+                .then(gimcana => {
+                    document.getElementById('edit-gimcana-id').value = gimcana.id;
+                    document.getElementById('edit-gimcana-name').value = gimcana.name;
+                    document.getElementById('edit-gimcana-description').value = gimcana.description;
+                    document.getElementById('edit-gimcana-max-groups').value = gimcana.max_groups;
+                    document.getElementById('edit-gimcana-max-users-per-group').value = gimcana.max_users_per_group;
+
+                    document.getElementById('editGimcanaModal').classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al cargar la gimcana',
+                        text: error.message
+                    });
+                });
+        }
+
+        document.getElementById('editGimcanaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            const data = {
+                id: formData.get('id'),
+                name: formData.get('name'),
+                description: formData.get('description'),
+                max_groups: parseInt(formData.get('max_groups')),
+                max_users_per_group: parseInt(formData.get('max_users_per_group'))
+            };
+
+            fetch(`/gimcanas/${data.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Error al actualizar la gimcana');
+                    });
+                }
+                return response.json();
+            })
+            .then(gimcana => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Gimcana actualizada con éxito',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                closeEditGimcanaModal();
+                loadGimcanas();
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al actualizar la gimcana',
+                    text: error.message
+                });
+            });
+        });
+
+        function closeEditGimcanaModal() {
+            document.getElementById('editGimcanaModal').classList.add('hidden');
+        }
     </script>
 </body>
 </html>
