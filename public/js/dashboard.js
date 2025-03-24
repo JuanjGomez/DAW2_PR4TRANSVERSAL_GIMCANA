@@ -1,3 +1,6 @@
+var places = [];
+var gimcanas = [];
+
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar el mapa
     const map = L.map('map').setView([40.4168, -3.7038], 6);
@@ -15,26 +18,91 @@ document.addEventListener('DOMContentLoaded', function() {
     setupGimcanaForm();
     setupCheckpointForm();
 
-    // Cargar lugares al inicio
-    loadPlaces(map, markers);
-    loadGimcanas();
-    loadCheckpoints();
-
+    // Cargar primero lugares y gimcanas
+    loadPlaces(map, markers)
+    .then(() => {
+        return loadGimcanas();
+    })
+    .then(() => {
+        // Ahora que tenemos lugares y gimcanas, cargar checkpoints
+        loadCheckpoints();
+    })
+    .catch(error => {
+        console.error("Error cargando datos iniciales:", error);
+    });
+    
     // Mostrar la pestaña de lugares por defecto
     showTab('places');
 
-    // Llamar a loadCheckpoints cuando se muestre la pestaña de puntos de control
-    const checkpointTabBtn = document.querySelector('[data-tab="checkpoints"]');
-    checkpointTabBtn.addEventListener('click', loadCheckpoints);
-
-    // Manejar el cambio de pestañas
+    // Configurar pestañas
     const tabButtons = document.querySelectorAll('.tab-btn');
     tabButtons.forEach(button => {
         button.addEventListener('click', function() {
             const tab = this.getAttribute('data-tab');
             showTab(tab);
+            // Si la pestaña es checkpoints, recargar los datos
+            if (tab === 'checkpoints') {
+                cargarDatosIniciales();
+            }
         });
     });
+    
+    // Función para cargar datos iniciales
+    function cargarDatosIniciales() {
+        // Primero cargar lugares
+        fetch('/places')
+            .then(response => response.json())
+            .then(data => {
+                // Asignar directamente a la variable global
+                places = data;
+                console.log("Lugares cargados correctamente:", places.length);
+                
+                // Luego cargar gimcanas
+                return fetch('/gimcanas');
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Asignar directamente a la variable global
+                gimcanas = data;
+                console.log("Gimcanas cargadas correctamente:", gimcanas.length);
+                
+                // Actualizar los selects en el formulario
+                actualizarSelects();
+                
+                // Ahora que tenemos los datos, cargar checkpoints
+                loadCheckpoints();
+            })
+            .catch(error => {
+                console.error("Error cargando datos:", error);
+            });
+    }
+    
+    // Función para actualizar los selects
+    function actualizarSelects() {
+        // Actualizar select de lugares
+        const placeSelect = document.getElementById('cp-place');
+        if (placeSelect) {
+            placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
+            places.forEach(place => {
+                const option = document.createElement('option');
+                option.value = place.id;
+                option.textContent = place.name;
+                placeSelect.appendChild(option);
+            });
+        }
+        
+        // Actualizar select de gimcanas
+        const gimcanaSelect = document.getElementById('cp-gimcana');
+        if (gimcanaSelect) {
+            gimcanaSelect.innerHTML = '<option value="">Selecciona una gimcana</option>';
+            gimcanas.forEach(gimcana => {
+                const option = document.createElement('option');
+                option.value = gimcana.id;
+                option.textContent = gimcana.name;
+                gimcanaSelect.appendChild(option);
+            });
+        }
+    }
 });
 
 function showTab(tabName) {
@@ -46,7 +114,19 @@ function showTab(tabName) {
     // Mostrar la pestaña seleccionada
     document.getElementById(tabName + '-tab').classList.remove('hidden');
     
-    // Actualizar los botones
+    // Actualizar pestaña activa y botones
+    activeTab = tabName;
+    
+    // Limpiar y recargar marcadores según la pestaña
+    clearMarkers();
+    
+    if (tabName === 'places') {
+        loadPlaces(map, markers);
+    } else if (tabName === 'checkpoints') {
+        loadCheckpoints();
+    }
+    
+    // Actualizar botones
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('border-blue-500', 'text-blue-600');
         if (btn.dataset.tab === tabName) {
@@ -297,10 +377,12 @@ function setupCheckpointForm() {
 
 function loadPlaces(map, markers) {
     // Limpiar marcadores existentes
-    markers.forEach(marker => map.removeLayer(marker));
-    markers = [];
+    if (map && markers) {
+        markers.forEach(marker => map.removeLayer(marker));
+        markers = [];
+    }
     
-    fetch('/places', {
+    return fetch('/places', {
         headers: {
             'Accept': 'application/json'
         }
@@ -311,88 +393,110 @@ function loadPlaces(map, markers) {
         }
         return response.json();
     })
-    .then(places => {
+    .then(data => {
+        // ESTO ES CRUCIAL: asignar a la variable global
+        places = data;
+        console.log("Lugares cargados:", places.length);
+        
+        // Actualizar la lista de lugares
         const placesList = document.getElementById('placesList');
-        placesList.innerHTML = '';
+        if (placesList) {
+            placesList.innerHTML = '';
+            
+            places.forEach(place => {
+                // Añadir a la lista
+                const placeElement = document.createElement('div');
+                placeElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
+                placeElement.innerHTML = `
+                    <h3 class="font-bold">${place.name}</h3>
+                    <p class="text-gray-600">${place.address}</p>
+                    <p class="text-sm text-gray-500">Lat: ${place.latitude}, Lng: ${place.longitude}</p>
+                    <div class="mt-2">
+                        <button onclick="editPlace(${place.id})" class="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600">Editar</button>
+                        <button onclick="deletePlace(${place.id})" class="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600">Eliminar</button>
+                    </div>
+                `;
+                placesList.appendChild(placeElement);
+            });
+        }
         
-        // Actualizar el select de lugares en el formulario de checkpoints
+        // Actualizar el select de lugares
         const placeSelect = document.getElementById('cp-place');
-        placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
+        if (placeSelect) {
+            placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
+            
+            places.forEach(place => {
+                const option = document.createElement('option');
+                option.value = place.id;
+                option.textContent = place.name;
+                placeSelect.appendChild(option);
+            });
+        }
         
-        places.forEach(place => {
-            // Añadir al mapa
-            const marker = L.marker([place.latitude, place.longitude])
-                .addTo(map)
-                .bindPopup(place.name);
-            markers.push(marker);
-            
-            // Añadir a la lista
-            const placeElement = document.createElement('div');
-            placeElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
-            placeElement.innerHTML = `
-                <h3 class="font-bold">${place.name}</h3>
-                <p class="text-gray-600">${place.address}</p>
-                <p class="text-sm text-gray-500">Lat: ${place.latitude}, Lng: ${place.longitude}</p>
-                <div class="mt-2">
-                    <button onclick="editPlace(${place.id})" class="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600">Editar</button>
-                    <button onclick="deletePlace(${place.id})" class="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600">Eliminar</button>
-                </div>
-            `;
-            placesList.appendChild(placeElement);
-            
-            // Añadir al select
-            const option = document.createElement('option');
-            option.value = place.id;
-            option.textContent = place.name;
-            placeSelect.appendChild(option);
-        });
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error al cargar los lugares',
-            text: error.message
-        });
+        // Añadir marcadores al mapa
+        if (map) {
+            places.forEach(place => {
+                const marker = L.marker([place.latitude, place.longitude])
+                    .addTo(map)
+                    .bindPopup(place.name);
+                markers.push(marker);
+            });
+        }
+        
+        return places; // Para encadenar
     });
 }
 
 function loadGimcanas() {
-    fetch('/gimcanas', {
+    return fetch('/gimcanas', {
         headers: {
             'Accept': 'application/json'
         }
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Error al cargar las gimcanas');
-        }
-        return response.json();
-    })
-    .then(gimcanas => {
-        const gimcanasList = document.getElementById('gimcanasList');
-        gimcanasList.innerHTML = '';
+    .then(response => response.json())
+    .then(data => {
+        // ESTO ES CRUCIAL: asignar a la variable global
+        gimcanas = data;
+        console.log("Gimcanas cargadas:", gimcanas.length);
         
-        gimcanas.forEach(gimcana => {
-            const gimcanaElement = document.createElement('div');
-            gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
-            gimcanaElement.innerHTML = `
-                <h3 class="font-bold">${gimcana.name}</h3>
-                <p class="text-gray-600">${gimcana.description}</p>
-                <div class="mt-2">
-                    <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700">
-                        Eliminar
-                    </button>
-                    <button onclick="openEditGimcanaModal(${gimcana.id})" class="text-blue-500 hover:text-blue-700 ml-2">
-                        Editar
-                    </button>
-                </div>
-            `;
-            gimcanasList.appendChild(gimcanaElement);
-        });
-    })
-    .catch(error => {
-        console.error('Error:', error);
+        // Actualizar el select de gimcanas
+        const gimcanaSelect = document.getElementById('cp-gimcana');
+        if (gimcanaSelect) {
+            gimcanaSelect.innerHTML = '<option value="">Selecciona una gimcana</option>';
+            
+            gimcanas.forEach(gimcana => {
+                const option = document.createElement('option');
+                option.value = gimcana.id;
+                option.textContent = gimcana.name;
+                gimcanaSelect.appendChild(option);
+            });
+        }
+        
+        // Actualizar la lista de gimcanas
+        const gimcanasList = document.getElementById('gimcanasList');
+        if (gimcanasList) {
+            gimcanasList.innerHTML = '';
+            
+            gimcanas.forEach(gimcana => {
+                const gimcanaElement = document.createElement('div');
+                gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
+                gimcanaElement.innerHTML = `
+                    <h3 class="font-bold">${gimcana.name}</h3>
+                    <p class="text-gray-600">${gimcana.description}</p>
+                    <div class="mt-2">
+                        <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700">
+                            Eliminar
+                        </button>
+                        <button onclick="openEditGimcanaModal(${gimcana.id})" class="text-blue-500 hover:text-blue-700 ml-2">
+                            Editar
+                        </button>
+                    </div>
+                `;
+                gimcanasList.appendChild(gimcanaElement);
+            });
+        }
+        
+        return gimcanas; // Para encadenar
     });
 }
 
@@ -425,47 +529,65 @@ function updateGimcanasSelect(gimcanas) {
     }
 }
 
-async function loadCheckpoints() {
-    try {
-        const response = await fetch('/api/checkpoints', {
-            headers: {
-                'Accept': 'application/json'
+function loadCheckpoints() {
+    // Verificar que tenemos datos
+    if (!places || places.length === 0 || !gimcanas || gimcanas.length === 0) {
+        console.log("Sin datos de lugares o gimcanas para cargar checkpoints");
+        console.log("Places:", places);
+        console.log("Gimcanas:", gimcanas);
+        return;
+    }
+    
+    console.log("Cargando checkpoints...");
+    
+    fetch('/api/checkpoints')
+        .then(response => response.json())
+        .then(checkpoints => {
+            console.log("Checkpoints recibidos:", checkpoints);
+            
+            const checkpointsList = document.getElementById('checkpointsList');
+            if (!checkpointsList) {
+                console.error("Elemento checkpointsList no encontrado");
+                return;
+            }
+            
+            checkpointsList.innerHTML = '';
+            
+            if (checkpoints.length === 0) {
+                checkpointsList.innerHTML = '<p class="text-gray-500">No hay puntos de control registrados.</p>';
+                return;
+            }
+            
+            checkpoints.forEach(checkpoint => {
+                // Usar los datos incluidos en la respuesta API
+                const checkpointElement = document.createElement('div');
+                checkpointElement.className = 'checkpoint-card p-4 border rounded-lg hover:bg-gray-50';
+                
+                const placeName = checkpoint.place ? checkpoint.place.name : 'Lugar desconocido';
+                const gimcanaName = checkpoint.gimcana ? checkpoint.gimcana.name : 'Gimcana desconocida';
+                
+                checkpointElement.innerHTML = `
+                    <h3 class="font-bold">${placeName} (Orden: ${checkpoint.order})</h3>
+                    <p class="text-gray-600"><strong>Gimcana:</strong> ${gimcanaName}</p>
+                    <p class="text-gray-600"><strong>Reto:</strong> ${checkpoint.challenge}</p>
+                    <p class="text-gray-500"><strong>Pista:</strong> ${checkpoint.clue}</p>
+                    <div class="mt-2">
+                        <button onclick="deleteCheckpoint(${checkpoint.id})" class="text-red-500 hover:text-red-700">
+                            Eliminar
+                        </button>
+                    </div>
+                `;
+                
+                checkpointsList.appendChild(checkpointElement);
+            });
+        })
+        .catch(error => {
+            console.error("Error cargando checkpoints:", error);
+            const checkpointsList = document.getElementById('checkpointsList');
+            if (checkpointsList) {
+                checkpointsList.innerHTML = '<p class="text-red-500">Error al cargar los puntos de control: ' + error.message + '</p>';
             }
         });
-
-        if (!response.ok) {
-            throw new Error('Error al cargar los puntos de control');
-        }
-
-        const checkpoints = await response.json();
-        const checkpointsList = document.getElementById('checkpointsList');
-        checkpointsList.innerHTML = '';
-        
-        checkpoints.forEach(checkpoint => {
-            const checkpointElement = document.createElement('div');
-            checkpointElement.className = 'checkpoint-card p-4 rounded-lg bg-white shadow';
-
-            checkpointElement.innerHTML = `
-                <h3 class="font-bold">${checkpoint.place.name}</h3>
-                <p class="text-sm text-gray-500">Gimcana: ${checkpoint.gimcana.name}</p>
-                <p class="text-gray-600"><strong>Reto:</strong> ${checkpoint.challenge}</p>
-                <p class="text-gray-600"><strong>Pista:</strong> ${checkpoint.clue}</p>
-                <p class="text-sm text-gray-500">Orden: ${checkpoint.order}</p>
-                <div class="mt-2">
-                    <button onclick="editCheckpoint(${checkpoint.id})" class="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600">Editar</button>
-                    <button onclick="deleteCheckpoint(${checkpoint.id})" class="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600">Eliminar</button>
-                </div>
-            `;
-            checkpointsList.appendChild(checkpointElement);
-        });
-    } catch (error) {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error al cargar los puntos de control',
-            text: error.message
-        });
-    }
 }
 
 function editPlace(id) {
@@ -664,4 +786,26 @@ function openEditGimcanaModal(id) {
             console.error('Error:', error);
             alert('Error al cargar la gimcana');
         });
+}
+
+function deleteCheckpoint(id) {
+    if (confirm('¿Estás seguro de que quieres eliminar este punto de control?')) {
+        fetch(`/checkpoints/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                loadCheckpoints();
+            } else {
+                throw new Error('Error al eliminar el punto de control');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al eliminar el punto de control');
+        });
+    }
 }

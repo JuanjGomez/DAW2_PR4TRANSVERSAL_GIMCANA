@@ -201,11 +201,11 @@
                         </div>
                         <div class="mb-4">
                             <label for="cp-clue" class="block text-gray-700">Pista</label>
-                            <textarea id="cp-clue" name="clue" rows="2" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                            <textarea id="cp-clue" name="clue" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
                         </div>
                         <div class="mb-4">
                             <label for="cp-order" class="block text-gray-700">Orden</label>
-                            <input type="number" id="cp-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
+                            <input type="number" id="cp-order" name="order" class="w-full px-4 py-2 border rounded-lg" min="1" required>
                         </div>
                         <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
                             Guardar Punto de Control
@@ -213,11 +213,11 @@
                     </form>
                 </div>
 
-                <!-- Lista de puntos de control -->
+                <!-- Lista de checkpoints -->
                 <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 class="text-xl font-bold mb-4">Puntos de Control</h2>
+                    <h2 class="text-xl font-bold mb-4">Puntos de Control Guardados</h2>
                     <div id="checkpointsList" class="space-y-4">
-                        <!-- Los puntos de control se cargarán dinámicamente aquí -->
+                        <!-- Los checkpoints se cargarán aquí dinámicamente -->
                     </div>
                 </div>
             </div>
@@ -312,8 +312,6 @@
         let currentMarker = null;
         let markers = [];
         let activeTab = 'places';
-        let places = [];
-        let gimcanas = [];
 
         // Inicializar mapa
         document.addEventListener('DOMContentLoaded', function() {
@@ -323,79 +321,6 @@
             loadCheckpoints();
             setupForms();
             showTab('places');
-
-            // Cargar lugares y gimcanas en los selectores
-            fetch('/api/places')
-                .then(response => response.json())
-                .then(places => {
-                    const placeSelect = document.getElementById('cp-place');
-                    places.forEach(place => {
-                        const option = document.createElement('option');
-                        option.value = place.id;
-                        option.textContent = place.name;
-                        placeSelect.appendChild(option);
-                    });
-                });
-
-            fetch('/api/gimcanas')
-                .then(response => response.json())
-                .then(gimcanas => {
-                    const gimcanaSelect = document.getElementById('cp-gimcana');
-                    gimcanas.forEach(gimcana => {
-                        const option = document.createElement('option');
-                        option.value = gimcana.id;
-                        option.textContent = gimcana.name;
-                        gimcanaSelect.appendChild(option);
-                    });
-                });
-
-            // Manejar el envío del formulario
-            document.getElementById('checkpointForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-
-                const data = {
-                    place_id: formData.get('place_id'),
-                    gimcana_id: formData.get('gimcana_id'),
-                    challenge: formData.get('challenge'),
-                    clue: formData.get('clue'),
-                    order: parseInt(formData.get('order'))
-                };
-
-                fetch('/api/checkpoints', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        return response.json().then(err => {
-                            throw new Error(err.message || 'Error al crear el punto de control');
-                        });
-                    }
-                    return response.json();
-                })
-                .then(checkpoint => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Punto de control creado con éxito',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                    loadCheckpoints();
-                    this.reset();
-                })
-                .catch(error => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error al crear el punto de control',
-                        text: error.message
-                    });
-                });
-            });
         });
 
         function initMap() {
@@ -685,22 +610,32 @@
             fetch('/api/checkpoints')
                 .then(response => response.json())
                 .then(checkpoints => {
+                    console.log("Checkpoints cargados:", checkpoints.length);
+                    
                     const checkpointsList = document.getElementById('checkpointsList');
+                    if (!checkpointsList) {
+                        console.error("No se encontró el elemento checkpointsList");
+                        return;
+                    }
+                    
                     checkpointsList.innerHTML = '';
-
+                    
+                    if (checkpoints.length === 0) {
+                        checkpointsList.innerHTML = '<p class="text-gray-500">No hay puntos de control registrados.</p>';
+                        return;
+                    }
+                    
                     checkpoints.forEach(checkpoint => {
-                        // Encontrar el lugar asociado para obtener las coordenadas
-                        const place = places.find(p => p.id === checkpoint.place_id);
-                        const gimcana = gimcanas.find(g => g.id === checkpoint.gimcana_id);
-
-                        if (!place || !gimcana) return;
-
-                        // Añadir al listado
+                        // Usar directamente los datos relacionados de la respuesta
                         const checkpointElement = document.createElement('div');
                         checkpointElement.className = 'checkpoint-card p-4 border rounded-lg hover:bg-gray-50';
+                        
+                        const placeName = checkpoint.place ? checkpoint.place.name : 'Lugar no encontrado';
+                        const gimcanaName = checkpoint.gimcana ? checkpoint.gimcana.name : 'Gimcana no encontrada';
+                        
                         checkpointElement.innerHTML = `
-                            <h3 class="font-bold">${place.name} (Orden: ${checkpoint.order})</h3>
-                            <p class="text-gray-600"><strong>Gimcana:</strong> ${gimcana.name}</p>
+                            <h3 class="font-bold">${placeName} (Orden: ${checkpoint.order})</h3>
+                            <p class="text-gray-600"><strong>Gimcana:</strong> ${gimcanaName}</p>
                             <p class="text-gray-600"><strong>Reto:</strong> ${checkpoint.challenge}</p>
                             <p class="text-gray-500"><strong>Pista:</strong> ${checkpoint.clue}</p>
                             <div class="mt-2">
@@ -709,16 +644,29 @@
                                 </button>
                             </div>
                         `;
+                        
                         checkpointsList.appendChild(checkpointElement);
-
-                        // Añadir al mapa si estamos en la pestaña de checkpoints
-                        if (activeTab === 'checkpoints') {
-                            const marker = L.marker([place.latitude, place.longitude])
-                                .bindPopup(`<b>${place.name}</b><br>Orden: ${checkpoint.order}<br>${checkpoint.clue}`)
-                                .addTo(map);
-                            markers.push(marker);
+                        
+                        // Si estamos en la pestaña de checkpoints, añadir marcador si tenemos lugar
+                        if (checkpoint.place && activeTab === 'checkpoints') {
+                            try {
+                                const place = checkpoint.place;
+                                const marker = L.marker([place.latitude, place.longitude])
+                                    .bindPopup(`<b>${place.name}</b><br>Orden: ${checkpoint.order}<br>${checkpoint.clue}`)
+                                    .addTo(map);
+                                markers.push(marker);
+                            } catch (e) {
+                                console.error("Error al añadir marcador:", e);
+                            }
                         }
                     });
+                })
+                .catch(error => {
+                    console.error('Error cargando checkpoints:', error);
+                    const checkpointsList = document.getElementById('checkpointsList');
+                    if (checkpointsList) {
+                        checkpointsList.innerHTML = '<p class="text-red-500">Error al cargar los puntos de control.</p>';
+                    }
                 });
         }
 
