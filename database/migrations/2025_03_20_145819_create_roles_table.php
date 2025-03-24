@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('gimcanas', function (Blueprint $table) {
+        Schema::create('roles', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('description');
-            $table->integer('max_groups');
-            $table->integer('max_users_per_group');
-            $table->enum('status', ['active', 'waiting'])->default('waiting');
             $table->timestamps();
         });
     }
@@ -27,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('gimcanas');
+        Schema::dropIfExists('roles');
     }
 };

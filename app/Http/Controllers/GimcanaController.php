@@ -89,7 +89,6 @@ class GimcanaController extends Controller
         try {
             $gimcanas = Gimcana::with('groups.members')->get();
             $gimcanas->each(function ($gimcana) {
-                $gimcana->current_groups = $gimcana->groups->count();
                 $gimcana->current_players = $gimcana->groups->sum(function ($group) {
                     return $group->members->count();
                 });
