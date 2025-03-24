@@ -9,6 +9,7 @@ use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\CheckpointController;
 use App\Http\Controllers\ChallengeAnswerController;
 use App\Http\Controllers\MapController;
+use App\Http\Controllers\TagController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -45,6 +46,14 @@ Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gi
     Route::get('/places/{place}', [PlaceController::class, 'show']);
     Route::put('/places/{place}', [PlaceController::class, 'update']);
     Route::delete('/places/{place}', [PlaceController::class, 'destroy']);
+
+    // API Routes
+    Route::prefix('api')->group(function () {
+        Route::apiResource('places', PlaceController::class);
+        Route::apiResource('gimcanas', GimcanaController::class);
+        Route::apiResource('checkpoints', CheckpointController::class);
+        Route::get('/tags', [TagController::class, 'index']);
+    });
 });
 
 Route::middleware(['auth'])->group(function () {
