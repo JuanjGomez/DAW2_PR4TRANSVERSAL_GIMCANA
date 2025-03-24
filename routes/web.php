@@ -12,7 +12,7 @@ use App\Http\Controllers\MapController;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('home');
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
@@ -70,3 +70,5 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/challenge-answers', [ChallengeAnswerController::class, 'store']);
     Route::post('/challenge-answers/verify', [ChallengeAnswerController::class, 'verifyAnswer']);
 });
+
+Route::get('/map', [MapController::class, 'index'])->name('map.index');
