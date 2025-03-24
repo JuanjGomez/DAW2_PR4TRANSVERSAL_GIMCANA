@@ -9,27 +9,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }).addTo(map);
 
     // Variables globales
-    let markers = [];
-    let activeTab = 'places';
-    let answerCount = 1;
+    window.map = map; // Hacer el mapa accesible globalmente
+    window.markers = [];
+    window.activeTab = 'places';
 
     // Configurar los formularios
-    setupPlaceForm(map, markers);
+    setupPlaceForm();
     setupGimcanaForm();
     setupCheckpointForm();
-
-    // Cargar primero lugares y gimcanas
-    loadPlaces(map, markers)
-    .then(() => {
-        return loadGimcanas();
-    })
-    .then(() => {
-        // Ahora que tenemos lugares y gimcanas, cargar checkpoints
-        loadCheckpoints();
-    })
-    .catch(error => {
-        console.error("Error cargando datos iniciales:", error);
-    });
+    
+    // Cargar todos los datos iniciales
+    cargarDatosIniciales();
     
     // Mostrar la pestaña de lugares por defecto
     showTab('places');
@@ -46,63 +36,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    // Función para cargar datos iniciales
-    function cargarDatosIniciales() {
-        // Primero cargar lugares
-        fetch('/places')
-            .then(response => response.json())
-            .then(data => {
-                // Asignar directamente a la variable global
-                places = data;
-                console.log("Lugares cargados correctamente:", places.length);
-                
-                // Luego cargar gimcanas
-                return fetch('/gimcanas');
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Asignar directamente a la variable global
-                gimcanas = data;
-                console.log("Gimcanas cargadas correctamente:", gimcanas.length);
-                
-                // Actualizar los selects en el formulario
-                actualizarSelects();
-                
-                // Ahora que tenemos los datos, cargar checkpoints
-                loadCheckpoints();
-            })
-            .catch(error => {
-                console.error("Error cargando datos:", error);
-            });
-    }
-    
-    // Función para actualizar los selects
-    function actualizarSelects() {
-        // Actualizar select de lugares
-        const placeSelect = document.getElementById('cp-place');
-        if (placeSelect) {
-            placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
-            places.forEach(place => {
-                const option = document.createElement('option');
-                option.value = place.id;
-                option.textContent = place.name;
-                placeSelect.appendChild(option);
-            });
-        }
-        
-        // Actualizar select de gimcanas
-        const gimcanaSelect = document.getElementById('cp-gimcana');
-        if (gimcanaSelect) {
-            gimcanaSelect.innerHTML = '<option value="">Selecciona una gimcana</option>';
-            gimcanas.forEach(gimcana => {
-                const option = document.createElement('option');
-                option.value = gimcana.id;
-                option.textContent = gimcana.name;
-                gimcanaSelect.appendChild(option);
-            });
-        }
-    }
 });
 
 function showTab(tabName) {
@@ -287,99 +220,128 @@ function setupGimcanaForm() {
 }
 
 function setupCheckpointForm() {
-    const form = document.getElementById('checkpointForm');
-    
-    form.addEventListener('submit', async function(e) {
+    const checkpointForm = document.getElementById('checkpointForm');
+    if (!checkpointForm) {
+        console.error("Formulario de checkpoint no encontrado");
+        return;
+    }
+
+    checkpointForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const formData = new FormData(this);
-        const checkpointData = {
-            place_id: formData.get('place_id'),
-            gimcana_id: formData.get('gimcana_id'),
-            challenge: formData.get('challenge'),
-            clue: formData.get('clue'),
-            order: formData.get('order')
+        const placeId = document.getElementById('cp-place').value;
+        const gimcanaId = document.getElementById('cp-gimcana').value;
+        const challenge = document.getElementById('cp-challenge').value;
+        const clue = document.getElementById('cp-clue').value;
+        const order = document.getElementById('cp-order').value;
+        
+        // Validar que todos los campos obligatorios estén completos
+        if (!placeId || !gimcanaId || !challenge || !clue || !order) {
+            alert('Por favor completa todos los campos');
+            return;
+        }
+        
+        // Datos para enviar
+        const formData = {
+            place_id: placeId,
+            gimcana_id: gimcanaId,
+            challenge: challenge,
+            clue: clue,
+            order: order
         };
         
-        try {
-            // Primero crear el checkpoint
-            const checkpointResponse = await fetch('/checkpoints', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify(checkpointData)
-            });
-
-            if (!checkpointResponse.ok) {
-                const error = await checkpointResponse.json();
-                throw new Error(error.message || 'Error al crear el punto de control');
-            }
-
-            const checkpoint = await checkpointResponse.json();
-
-            // Luego crear las respuestas
-            const answers = [];
-            const correctAnswerIndex = formData.get('correct_answer');
-            
-            document.querySelectorAll('.answer-container').forEach((container, index) => {
-                const answerText = container.querySelector('input[type="text"]').value;
-                answers.push({
-                    answer: answerText,
-                    is_correct: index.toString() === correctAnswerIndex
+        // Enviar datos mediante AJAX
+        fetch('/api/checkpoints', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errData => {
+                    throw new Error(errData.errors ? JSON.stringify(errData.errors) : 'Error al guardar el checkpoint');
                 });
-            });
-
-            const answersResponse = await fetch('/challenge-answers', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({
-                    checkpoint_id: checkpoint.id,
-                    answers: answers
-                })
-            });
-
-            if (!answersResponse.ok) {
-                const error = await answersResponse.json();
-                throw new Error(error.message || 'Error al crear las respuestas');
             }
-
-            alert('Punto de control y respuestas creados con éxito');
-            form.reset();
-            document.getElementById('answers-container').innerHTML = `
-                <div class="answer-container">
-                    <div class="mb-2">
-                        <label class="block text-gray-700">Respuesta 1</label>
-                        <input type="text" name="answers[0][answer]" class="w-full px-4 py-2 border rounded-lg" required>
-                        <div class="mt-2">
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="correct_answer" value="0" class="form-radio" required>
-                                <span class="ml-2">Respuesta correcta</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            `;
-            loadCheckpoints();
-
-        } catch (error) {
+            return response.json();
+        })
+        .then(data => {
+            console.log("Checkpoint guardado:", data);
+            
+            // Añadir el nuevo checkpoint a la lista sin recargar todo
+            addNewCheckpointToList(data);
+            
+            // Limpiar el formulario pero mantener los selects
+            document.getElementById('cp-challenge').value = '';
+            document.getElementById('cp-clue').value = '';
+            document.getElementById('cp-order').value = '';
+            
+            // Mostrar mensaje de éxito
+            alert('Punto de control añadido correctamente');
+        })
+        .catch(error => {
             console.error('Error:', error);
-            alert(error.message || 'Error al crear el punto de control y sus respuestas');
-        }
+            alert('Error al guardar: ' + error.message);
+        });
     });
+}
+
+// Función auxiliar para añadir un nuevo checkpoint a la lista sin recargar
+function addNewCheckpointToList(checkpoint) {
+    const checkpointsList = document.getElementById('checkpointsList');
+    if (!checkpointsList) {
+        console.error("Elemento checkpointsList no encontrado");
+        return;
+    }
+    
+    // Eliminar mensaje de "no hay checkpoints" si existe
+    if (checkpointsList.innerHTML.includes('No hay puntos de control registrados')) {
+        checkpointsList.innerHTML = '';
+    }
+    
+    // Crear el elemento para el nuevo checkpoint
+    const checkpointElement = document.createElement('div');
+    checkpointElement.className = 'checkpoint-card p-4 border rounded-lg hover:bg-gray-50';
+    
+    const placeName = checkpoint.place ? checkpoint.place.name : 'Lugar desconocido';
+    const gimcanaName = checkpoint.gimcana ? checkpoint.gimcana.name : 'Gimcana desconocida';
+    
+    checkpointElement.innerHTML = `
+        <h3 class="font-bold">${placeName} (Orden: ${checkpoint.order})</h3>
+        <p class="text-gray-600"><strong>Gimcana:</strong> ${gimcanaName}</p>
+        <p class="text-gray-600"><strong>Reto:</strong> ${checkpoint.challenge}</p>
+        <p class="text-gray-500"><strong>Pista:</strong> ${checkpoint.clue}</p>
+        <div class="mt-2">
+            <button onclick="deleteCheckpoint(${checkpoint.id})" class="text-red-500 hover:text-red-700">
+                Eliminar
+            </button>
+        </div>
+    `;
+    
+    // Insertar al principio de la lista
+    checkpointsList.insertBefore(checkpointElement, checkpointsList.firstChild);
+    
+    // Si estamos en la pestaña de checkpoints, añadir también al mapa
+    if (activeTab === 'checkpoints' && checkpoint.place) {
+        try {
+            const place = checkpoint.place;
+            const marker = L.marker([place.latitude, place.longitude])
+                .bindPopup(`<b>${place.name}</b><br>Orden: ${checkpoint.order}<br>${checkpoint.clue}`)
+                .addTo(map);
+            markers.push(marker);
+        } catch (e) {
+            console.error("Error al añadir marcador:", e);
+        }
+    }
 }
 
 function loadPlaces(map, markers) {
     // Limpiar marcadores existentes
     if (map && markers) {
-        markers.forEach(marker => map.removeLayer(marker));
-        markers = [];
+    markers.forEach(marker => map.removeLayer(marker));
+    markers = [];
     }
     
     return fetch('/places', {
@@ -401,22 +363,22 @@ function loadPlaces(map, markers) {
         // Actualizar la lista de lugares
         const placesList = document.getElementById('placesList');
         if (placesList) {
-            placesList.innerHTML = '';
+        placesList.innerHTML = '';
             
             places.forEach(place => {
-                // Añadir a la lista
-                const placeElement = document.createElement('div');
-                placeElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
-                placeElement.innerHTML = `
-                    <h3 class="font-bold">${place.name}</h3>
-                    <p class="text-gray-600">${place.address}</p>
-                    <p class="text-sm text-gray-500">Lat: ${place.latitude}, Lng: ${place.longitude}</p>
-                    <div class="mt-2">
-                        <button onclick="editPlace(${place.id})" class="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600">Editar</button>
-                        <button onclick="deletePlace(${place.id})" class="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600">Eliminar</button>
-                    </div>
-                `;
-                placesList.appendChild(placeElement);
+            // Añadir a la lista
+            const placeElement = document.createElement('div');
+            placeElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
+            placeElement.innerHTML = `
+                <h3 class="font-bold">${place.name}</h3>
+                <p class="text-gray-600">${place.address}</p>
+                <p class="text-sm text-gray-500">Lat: ${place.latitude}, Lng: ${place.longitude}</p>
+                <div class="mt-2">
+                    <button onclick="editPlace(${place.id})" class="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600">Editar</button>
+                    <button onclick="deletePlace(${place.id})" class="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600">Eliminar</button>
+                </div>
+            `;
+            placesList.appendChild(placeElement);
             });
         }
         
@@ -426,11 +388,11 @@ function loadPlaces(map, markers) {
             placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
             
             places.forEach(place => {
-                const option = document.createElement('option');
-                option.value = place.id;
-                option.textContent = place.name;
-                placeSelect.appendChild(option);
-            });
+            const option = document.createElement('option');
+            option.value = place.id;
+            option.textContent = place.name;
+            placeSelect.appendChild(option);
+        });
         }
         
         // Añadir marcadores al mapa
@@ -475,25 +437,25 @@ function loadGimcanas() {
         // Actualizar la lista de gimcanas
         const gimcanasList = document.getElementById('gimcanasList');
         if (gimcanasList) {
-            gimcanasList.innerHTML = '';
-            
-            gimcanas.forEach(gimcana => {
-                const gimcanaElement = document.createElement('div');
-                gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
-                gimcanaElement.innerHTML = `
-                    <h3 class="font-bold">${gimcana.name}</h3>
-                    <p class="text-gray-600">${gimcana.description}</p>
-                    <div class="mt-2">
-                        <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700">
-                            Eliminar
-                        </button>
-                        <button onclick="openEditGimcanaModal(${gimcana.id})" class="text-blue-500 hover:text-blue-700 ml-2">
-                            Editar
-                        </button>
-                    </div>
-                `;
-                gimcanasList.appendChild(gimcanaElement);
-            });
+        gimcanasList.innerHTML = '';
+        
+        gimcanas.forEach(gimcana => {
+            const gimcanaElement = document.createElement('div');
+            gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
+            gimcanaElement.innerHTML = `
+                <h3 class="font-bold">${gimcana.name}</h3>
+                <p class="text-gray-600">${gimcana.description}</p>
+                <div class="mt-2">
+                    <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700">
+                        Eliminar
+                    </button>
+                    <button onclick="openEditGimcanaModal(${gimcana.id})" class="text-blue-500 hover:text-blue-700 ml-2">
+                        Editar
+                    </button>
+                </div>
+            `;
+            gimcanasList.appendChild(gimcanaElement);
+        });
         }
         
         return gimcanas; // Para encadenar
@@ -557,29 +519,29 @@ function loadCheckpoints() {
                 checkpointsList.innerHTML = '<p class="text-gray-500">No hay puntos de control registrados.</p>';
                 return;
             }
-            
-            checkpoints.forEach(checkpoint => {
+        
+        checkpoints.forEach(checkpoint => {
                 // Usar los datos incluidos en la respuesta API
-                const checkpointElement = document.createElement('div');
+            const checkpointElement = document.createElement('div');
                 checkpointElement.className = 'checkpoint-card p-4 border rounded-lg hover:bg-gray-50';
                 
                 const placeName = checkpoint.place ? checkpoint.place.name : 'Lugar desconocido';
                 const gimcanaName = checkpoint.gimcana ? checkpoint.gimcana.name : 'Gimcana desconocida';
-                
-                checkpointElement.innerHTML = `
+
+            checkpointElement.innerHTML = `
                     <h3 class="font-bold">${placeName} (Orden: ${checkpoint.order})</h3>
                     <p class="text-gray-600"><strong>Gimcana:</strong> ${gimcanaName}</p>
-                    <p class="text-gray-600"><strong>Reto:</strong> ${checkpoint.challenge}</p>
+                <p class="text-gray-600"><strong>Reto:</strong> ${checkpoint.challenge}</p>
                     <p class="text-gray-500"><strong>Pista:</strong> ${checkpoint.clue}</p>
-                    <div class="mt-2">
+                <div class="mt-2">
                         <button onclick="deleteCheckpoint(${checkpoint.id})" class="text-red-500 hover:text-red-700">
                             Eliminar
                         </button>
-                    </div>
-                `;
+                </div>
+            `;
                 
-                checkpointsList.appendChild(checkpointElement);
-            });
+            checkpointsList.appendChild(checkpointElement);
+        });
         })
         .catch(error => {
             console.error("Error cargando checkpoints:", error);

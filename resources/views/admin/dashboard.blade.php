@@ -201,14 +201,14 @@
                         </div>
                         <div class="mb-4">
                             <label for="cp-clue" class="block text-gray-700">Pista</label>
-                            <textarea id="cp-clue" name="clue" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                            <textarea id="cp-clue" name="clue" rows="2" class="w-full px-4 py-2 border rounded-lg" required></textarea>
                         </div>
                         <div class="mb-4">
                             <label for="cp-order" class="block text-gray-700">Orden</label>
-                            <input type="number" id="cp-order" name="order" class="w-full px-4 py-2 border rounded-lg" min="1" required>
+                            <input type="number" id="cp-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
                         </div>
-                        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                            Guardar Punto de Control
+                        <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                            Añadir Punto de Control
                         </button>
                     </form>
                 </div>
@@ -321,6 +321,7 @@
             loadCheckpoints();
             setupForms();
             showTab('places');
+            addDebugButton();
         });
 
         function initMap() {
@@ -347,9 +348,24 @@
         }
 
         function showTab(tabName) {
-            activeTab = tabName;
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Mostrar la pestaña seleccionada
             document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            // Actualizar pestaña activa
+            activeTab = tabName;
+            
+            // Si estamos en la pestaña de checkpoints, asegurarse de que los selects estén actualizados
+            if (tabName === 'checkpoints') {
+                loadGimcanas();  // Recargar gimcanas para actualizar el selector
+                loadPlaces();    // También recargar lugares
+            }
+            
+            // Actualizar botones de navegación
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('border-blue-500', 'text-blue-600');
                 if (btn.dataset.tab === tabName) {
@@ -472,6 +488,81 @@
                     document.getElementById('tags-dropdown').classList.add('hidden');
                 }, 200);
             });
+
+            // Añadir esta función para el formulario de checkpoints
+            const checkpointForm = document.getElementById('checkpointForm');
+            if (checkpointForm) {
+                checkpointForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const placeId = document.getElementById('cp-place').value;
+                    const gimcanaId = document.getElementById('cp-gimcana').value;
+                    const challenge = document.getElementById('cp-challenge').value;
+                    const clue = document.getElementById('cp-clue').value;
+                    const order = document.getElementById('cp-order').value;
+                    
+                    // Validar que todos los campos obligatorios estén completos
+                    if (!placeId || !gimcanaId || !challenge || !clue || !order) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Campos incompletos',
+                            text: 'Por favor completa todos los campos'
+                        });
+                        return;
+                    }
+                    
+                    // Datos para enviar
+                    const formData = {
+                        place_id: placeId,
+                        gimcana_id: gimcanaId,
+                        challenge: challenge,
+                        clue: clue,
+                        order: order
+                    };
+                    
+                    // Enviar datos mediante fetch API
+                    fetch('/api/checkpoints', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.error || 'Error al guardar el punto de control');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Limpiar el formulario pero mantener los selects
+                        document.getElementById('cp-challenge').value = '';
+                        document.getElementById('cp-clue').value = '';
+                        document.getElementById('cp-order').value = '';
+                        
+                        // Mostrar mensaje de éxito y recargar los checkpoints
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Éxito!',
+                            text: 'Punto de control añadido correctamente'
+                        });
+                        
+                        // Recargar los checkpoints
+                        loadCheckpoints();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: error.message
+                        });
+                    });
+                });
+            }
         }
 
         function loadPlaces() {
@@ -568,42 +659,36 @@
         }
 
         function loadGimcanas() {
-            fetch('/gimcanas', {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error al cargar las gimcanas');
-                }
-                return response.json();
-            })
-            .then(gimcanas => {
-                const gimcanasList = document.getElementById('gimcanasList');
-                gimcanasList.innerHTML = '';
-                
-                gimcanas.forEach(gimcana => {
-                    const gimcanaElement = document.createElement('div');
-                    gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
-                    gimcanaElement.innerHTML = `
-                        <h3 class="font-bold">${gimcana.name}</h3>
-                        <p class="text-gray-600">${gimcana.description}</p>
-                        <div class="mt-2">
-                            <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700">
-                                Eliminar
-                            </button>
-                            <button onclick="openEditGimcanaModal(${gimcana.id})" class="text-blue-500 hover:text-blue-700 ml-2">
-                                Editar
-                            </button>
-                        </div>
-                    `;
-                    gimcanasList.appendChild(gimcanaElement);
+            fetch('/gimcanas')
+                .then(response => response.json())
+                .then(data => {
+                    // Guardar en variable global
+                    window.gimcanas = data;
+                    console.log("Gimcanas cargadas:", data.length);
+                    
+                    // Actualizar selector en el formulario
+                    const gimcanaSelect = document.getElementById('cp-gimcana');
+                    if (gimcanaSelect) {
+                        gimcanaSelect.innerHTML = '<option value="">Selecciona una gimcana</option>';
+                        
+                        data.forEach(gimcana => {
+                            const option = document.createElement('option');
+                            option.value = gimcana.id;
+                            option.textContent = gimcana.name;
+                            gimcanaSelect.appendChild(option);
+                        });
+                    }
+                    
+                    // Actualizar lista de gimcanas en la pestaña correspondiente
+                    const gimcanasList = document.getElementById('gimcanasList');
+                    if (gimcanasList) {
+                        gimcanasList.innerHTML = '';
+                        // Rellenar lista de gimcanas...
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando gimcanas:', error);
                 });
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
         }
 
         function loadCheckpoints() {
