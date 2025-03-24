@@ -4,19 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-class Checkpoint extends Model
+
+class Group extends Model
 {
     use HasFactory;
 
-    protected $table = 'checkpoints';
+    protected $table = 'groups';
 
     protected $fillable = [
         'name',
+        'current_checkpoint',
         'gimcana_id',
-        'place_id',
-        'challenge',
-        'clue',
-        'order',
     ];
 
     public function gimcana()
@@ -24,9 +22,9 @@ class Checkpoint extends Model
         return $this->belongsTo(Gimcana::class);
     }
 
-    public function place()
+    public function members()
     {
-        return $this->belongsTo(Place::class);
+        return $this->hasMany(GroupMember::class);
     }
 
 }

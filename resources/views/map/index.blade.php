@@ -8,6 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="{{ asset('css/userIndex.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         #map {
             height: 100vh;
@@ -50,13 +51,21 @@
 
     <!-- Modal para seleccionar Gimcana -->
     <div id="gimcanaModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
-        <div id="modal-content">
+        <div id="modal-content" class="bg-white p-6 rounded-lg shadow-lg">
             <h2 class="text-2xl font-bold mb-4">Selecciona una Gimcana</h2>
-            <ul id="gimcanaList" class="list-disc pl-5">
+            <div id="gimcanaList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Lista de gimcanas se llenará dinámicamente -->
-            </ul>
+            </div>
             <button id="closeModal" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300 mt-4">Cerrar</button>
         </div>
+    </div>
+
+    <!-- Modal para detalles de Gimcana -->
+    <div id="gimcanaDetailsModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
+        <div id="gimcanaDetailsContent" class="bg-white p-6 rounded-lg shadow-lg">
+            <!-- Contenido se llenará dinámicamente -->
+        </div>
+        <button id="closeDetailsModal" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-300 mt-4">Cerrar</button>
     </div>
 
     <!-- Mapa -->
