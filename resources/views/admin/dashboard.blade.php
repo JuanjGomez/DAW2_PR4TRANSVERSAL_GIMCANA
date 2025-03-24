@@ -359,10 +359,16 @@
             // Actualizar pestaña activa
             activeTab = tabName;
             
-            // Si estamos en la pestaña de checkpoints, asegurarse de que los selects estén actualizados
-            if (tabName === 'checkpoints') {
+            // Cargar datos específicos para cada pestaña
+            if (tabName === 'gimcanas') {
+                console.log("Pestaña de gimcanas seleccionada, cargando datos...");
+                loadGimcanas();
+            } else if (tabName === 'checkpoints') {
                 loadGimcanas();  // Recargar gimcanas para actualizar el selector
                 loadPlaces();    // También recargar lugares
+                loadCheckpoints();
+            } else if (tabName === 'places') {
+                loadPlaces();
             }
             
             // Actualizar botones de navegación
@@ -659,16 +665,56 @@
         }
 
         function loadGimcanas() {
+            console.log("Cargando gimcanas...");
             fetch('/gimcanas')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar las gimcanas');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     // Guardar en variable global
                     window.gimcanas = data;
-                    console.log("Gimcanas cargadas:", data.length);
                     
-                    // Actualizar selector en el formulario
+                    // Actualizar la lista de gimcanas
+                    const gimcanasList = document.getElementById('gimcanasList');
+                    if (gimcanasList) {
+                        gimcanasList.innerHTML = '';
+                        
+                        if (data.length === 0) {
+                            gimcanasList.innerHTML = '<p class="text-gray-500">No hay gimcanas registradas</p>';
+                            return;
+                        }
+                        
+                        data.forEach(gimcana => {
+                            const gimcanaElement = document.createElement('div');
+                            gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
+                            gimcanaElement.innerHTML = `
+                                <h3 class="font-bold">${gimcana.name}</h3>
+                                <p class="text-gray-600">${gimcana.description || 'Sin descripción'}</p>
+                                <p class="text-sm text-gray-500">Grupos: ${gimcana.max_groups}, Usuarios por grupo: ${gimcana.max_users_per_group}</p>
+                                <div class="mt-2">
+                                    <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700 mr-2">
+                                        Eliminar
+                                    </button>
+                                    <button onclick="openEditGimcanaModal(${gimcana.id})" class="text-blue-500 hover:text-blue-700">
+                                        Editar
+                                    </button>
+                                </div>
+                            `;
+                            gimcanasList.appendChild(gimcanaElement);
+                        });
+                    } else {
+                        console.error("Elemento gimcanasList no encontrado");
+                    }
+                    
+                    // Actualizar selector de gimcanas en el formulario de checkpoints
                     const gimcanaSelect = document.getElementById('cp-gimcana');
                     if (gimcanaSelect) {
+                        // Guardar la selección actual si existe
+                        const currentSelection = gimcanaSelect.value;
+                        
                         gimcanaSelect.innerHTML = '<option value="">Selecciona una gimcana</option>';
                         
                         data.forEach(gimcana => {
@@ -677,17 +723,19 @@
                             option.textContent = gimcana.name;
                             gimcanaSelect.appendChild(option);
                         });
-                    }
-                    
-                    // Actualizar lista de gimcanas en la pestaña correspondiente
-                    const gimcanasList = document.getElementById('gimcanasList');
-                    if (gimcanasList) {
-                        gimcanasList.innerHTML = '';
-                        // Rellenar lista de gimcanas...
+                        
+                        // Restaurar la selección anterior si es posible
+                        if (currentSelection) {
+                            gimcanaSelect.value = currentSelection;
+                        }
                     }
                 })
                 .catch(error => {
                     console.error('Error cargando gimcanas:', error);
+                    const gimcanasList = document.getElementById('gimcanasList');
+                    if (gimcanasList) {
+                        gimcanasList.innerHTML = '<p class="text-red-500">Error al cargar las gimcanas: ' + error.message + '</p>';
+                    }
                 });
         }
 
