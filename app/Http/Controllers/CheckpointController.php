@@ -45,10 +45,9 @@ class CheckpointController extends Controller
             $checkpoint = Checkpoint::create($request->all());
             Log::info('Checkpoint created successfully: ' . $checkpoint->id);
             return response()->json($checkpoint->load(['place', 'gimcana']), 201);
-
         } catch (\Exception $e) {
             Log::error('Error creating checkpoint: ' . $e->getMessage());
-            return response()->json(['error' => 'Error creating checkpoint'], 500);
+            return response()->json(['error' => 'Error al crear el punto de control'], 500);
         }
     }
 

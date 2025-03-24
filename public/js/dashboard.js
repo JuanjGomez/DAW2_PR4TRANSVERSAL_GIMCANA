@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar el mapa
-    const map = L.map('map').setView([41.390205, 2.154007], 13);
+    const map = L.map('map').setView([40.4168, -3.7038], 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
     // Variables globales
@@ -16,13 +15,26 @@ document.addEventListener('DOMContentLoaded', function() {
     setupGimcanaForm();
     setupCheckpointForm();
 
-    // Cargar datos iniciales
+    // Cargar lugares al inicio
     loadPlaces(map, markers);
     loadGimcanas();
     loadCheckpoints();
 
     // Mostrar la pestaña de lugares por defecto
     showTab('places');
+
+    // Llamar a loadCheckpoints cuando se muestre la pestaña de puntos de control
+    const checkpointTabBtn = document.querySelector('[data-tab="checkpoints"]');
+    checkpointTabBtn.addEventListener('click', loadCheckpoints);
+
+    // Manejar el cambio de pestañas
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const tab = this.getAttribute('data-tab');
+            showTab(tab);
+        });
+    });
 });
 
 function showTab(tabName) {
@@ -337,7 +349,11 @@ function loadPlaces(map, markers) {
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('Error al cargar los lugares');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error al cargar los lugares',
+            text: error.message
+        });
     });
 }
 
@@ -411,7 +427,7 @@ function updateGimcanasSelect(gimcanas) {
 
 async function loadCheckpoints() {
     try {
-        const response = await fetch('/checkpoints', {
+        const response = await fetch('/api/checkpoints', {
             headers: {
                 'Accept': 'application/json'
             }
@@ -425,26 +441,9 @@ async function loadCheckpoints() {
         const checkpointsList = document.getElementById('checkpointsList');
         checkpointsList.innerHTML = '';
         
-        for (const checkpoint of checkpoints) {
-            // Cargar las respuestas para este checkpoint
-            const answersResponse = await fetch(`/checkpoints/${checkpoint.id}/answers`, {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            
-            const answers = await answersResponse.json();
-            
+        checkpoints.forEach(checkpoint => {
             const checkpointElement = document.createElement('div');
             checkpointElement.className = 'checkpoint-card p-4 rounded-lg bg-white shadow';
-            
-            let answersHtml = '<div class="mt-3"><strong>Respuestas:</strong><ul class="list-disc pl-5 mt-2">';
-            answers.forEach(answer => {
-                answersHtml += `
-                    <li class="${answer.is_correct ? 'text-green-600 font-bold' : ''}">${answer.answer}</li>
-                `;
-            });
-            answersHtml += '</ul></div>';
 
             checkpointElement.innerHTML = `
                 <h3 class="font-bold">${checkpoint.place.name}</h3>
@@ -452,12 +451,20 @@ async function loadCheckpoints() {
                 <p class="text-gray-600"><strong>Reto:</strong> ${checkpoint.challenge}</p>
                 <p class="text-gray-600"><strong>Pista:</strong> ${checkpoint.clue}</p>
                 <p class="text-sm text-gray-500">Orden: ${checkpoint.order}</p>
-                ${answersHtml}
+                <div class="mt-2">
+                    <button onclick="editCheckpoint(${checkpoint.id})" class="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600">Editar</button>
+                    <button onclick="deleteCheckpoint(${checkpoint.id})" class="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600">Eliminar</button>
+                </div>
             `;
             checkpointsList.appendChild(checkpointElement);
-        }
+        });
     } catch (error) {
         console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error al cargar los puntos de control',
+            text: error.message
+        });
     }
 }
 
