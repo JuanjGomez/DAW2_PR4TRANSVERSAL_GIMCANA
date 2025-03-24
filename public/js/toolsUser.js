@@ -22,6 +22,8 @@ function loadGimcanas() {
             gimcanas.forEach(gimcana => {
                 const maxPlayers = gimcana.max_groups * gimcana.max_users_per_group
                 const currentPlayers = gimcana.current_players
+                console.log(gimcana)
+                console.log(currentPlayers)
                 const card = document.createElement('div')
                 card.className = 'gimcana-card'
                 card.innerHTML = `
