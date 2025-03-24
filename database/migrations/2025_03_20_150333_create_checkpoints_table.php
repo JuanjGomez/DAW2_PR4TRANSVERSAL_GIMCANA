@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('gimcanas', function (Blueprint $table) {
+        Schema::create('checkpoints', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('description');
-            $table->integer('max_groups');
-            $table->integer('max_users_per_group');
-            $table->enum('status', ['active', 'waiting'])->default('waiting');
+            $table->foreignId('place_id')->constrained('places');
+            $table->foreignId('gimcana_id')->constrained('gimcanas');
+            $table->text('challenge');
+            $table->text('clue');
+            $table->integer('order');
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('gimcanas');
+        Schema::dropIfExists('checkpoints');
     }
 };
