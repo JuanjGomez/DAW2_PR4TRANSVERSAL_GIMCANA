@@ -304,6 +304,50 @@
                 </form>
             </div>
         </div>
+
+        <!-- Modal para editar Checkpoint -->
+        <div id="editCheckpointModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                <h2 class="text-xl font-bold mb-4">Editar Punto de Control</h2>
+                <form id="editCheckpointForm">
+                    <input type="hidden" id="edit-checkpoint-id" name="id">
+                    <div class="mb-4">
+                        <label for="edit-checkpoint-place" class="block text-gray-700">Lugar</label>
+                        <select id="edit-checkpoint-place" name="place_id" class="w-full px-4 py-2 border rounded-lg" required>
+                            <option value="">Selecciona un lugar</option>
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-checkpoint-gimcana" class="block text-gray-700">Gimcana</label>
+                        <select id="edit-checkpoint-gimcana" name="gimcana_id" class="w-full px-4 py-2 border rounded-lg" required>
+                            <option value="">Selecciona una gimcana</option>
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-checkpoint-challenge" class="block text-gray-700">Reto</label>
+                        <textarea id="edit-checkpoint-challenge" name="challenge" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-checkpoint-clue" class="block text-gray-700">Pista</label>
+                        <textarea id="edit-checkpoint-clue" name="clue" rows="2" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-checkpoint-order" class="block text-gray-700">Orden</label>
+                        <input type="number" id="edit-checkpoint-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" onclick="closeEditCheckpointModal()" class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -775,6 +819,9 @@
                                 <button onclick="deleteCheckpoint(${checkpoint.id})" class="text-red-500 hover:text-red-700">
                                     Eliminar
                                 </button>
+                                <button onclick="openEditCheckpointModal(${checkpoint.id})" class="text-blue-500 hover:text-blue-700">
+                                    Editar
+                                </button>
                             </div>
                         `;
                         
@@ -1121,6 +1168,85 @@
         function closeEditGimcanaModal() {
             document.getElementById('editGimcanaModal').classList.add('hidden');
         }
+
+        // Agregar la función para abrir el modal de edición de checkpoints
+        function openEditCheckpointModal(id) {
+            fetch(`/api/checkpoints/${id}`)
+                .then(response => response.json())
+                .then(checkpoint => {
+                    document.getElementById('edit-checkpoint-id').value = checkpoint.id;
+                    document.getElementById('edit-checkpoint-place').value = checkpoint.place_id;
+                    document.getElementById('edit-checkpoint-gimcana').value = checkpoint.gimcana_id;
+                    document.getElementById('edit-checkpoint-challenge').value = checkpoint.challenge;
+                    document.getElementById('edit-checkpoint-clue').value = checkpoint.clue;
+                    document.getElementById('edit-checkpoint-order').value = checkpoint.order;
+
+                    document.getElementById('editCheckpointModal').classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error("Error cargando checkpoint para editar:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'No se pudo cargar el punto de control para editar'
+                    });
+                });
+        }
+
+        // Función para cerrar el modal de edición de checkpoints
+        function closeEditCheckpointModal() {
+            document.getElementById('editCheckpointModal').classList.add('hidden');
+        }
+
+        // Agregar a las funciones de setup al final del archivo
+        document.getElementById('editCheckpointForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            const data = {
+                place_id: formData.get('place_id'),
+                gimcana_id: formData.get('gimcana_id'),
+                challenge: formData.get('challenge'),
+                clue: formData.get('clue'),
+                order: parseInt(formData.get('order'))
+            };
+
+            const checkpointId = formData.get('id');
+
+            fetch(`/api/checkpoints/${checkpointId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || 'Error al actualizar el punto de control');
+                    });
+                }
+                return response.json();
+            })
+            .then(checkpoint => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Punto de control actualizado con éxito',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                closeEditCheckpointModal();
+                loadCheckpoints();
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al actualizar el punto de control',
+                    text: error.message
+                });
+            });
+        });
     </script>
 </body>
 </html>
