@@ -1,3 +1,53 @@
+// Inicializar el mapa
+const map = L.map('map').setView([41.3851, 2.1734], 13);
+
+// Añadir capa de OpenStreetMap
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: ' OpenStreetMap contributors'
+}).addTo(map);
+
+// Marcador del usuario
+let userMarker;
+
+// Obtener y mostrar la ubicación del usuario
+if (navigator.geolocation) {
+    navigator.geolocation.watchPosition(
+        (position) => {
+            const { latitude, longitude } = position.coords;
+
+            // Si ya existe un marcador, actualizar su posición
+            if (userMarker) {
+                userMarker.setLatLng([latitude, longitude]);
+            } else {
+                // Crear nuevo marcador circular
+                userMarker = L.circleMarker([latitude, longitude], {
+                    radius: 10,
+                    fillColor: '#4285F4', // Color azul de Google Maps
+                    color: '#ffffff',     // Borde blanco
+                    weight: 2,            // Grosor del borde
+                    opacity: 1,
+                    fillOpacity: 1
+                }).addTo(map);
+                map.setView([latitude, longitude], 15);
+            }
+        },
+        (error) => {
+            console.error('Error al obtener la ubicación:', error);
+        },
+        {
+            enableHighAccuracy: true,
+            maximumAge: 30000,
+            timeout: 27000
+        }
+    );
+}
+
+// Eventos para los botones
+document.getElementById('filtrosBtn').addEventListener('click', () => {
+    // Aquí irá la lógica para abrir el modal de Filtros
+    console.log('Abrir modal de Filtros')
+})
+
 document.getElementById('lobbiesBtn').addEventListener('click', () => {
     document.getElementById('gimcanaModal').classList.remove('hidden')
     loadGimcanas()
@@ -20,9 +70,9 @@ function loadGimcanas() {
             const list = document.getElementById('gimcanaList')
             list.innerHTML = ''
             gimcanas.forEach(gimcana => {
+                console.log(gimcana)
                 const maxPlayers = gimcana.max_groups * gimcana.max_users_per_group
                 const currentPlayers = gimcana.current_players
-                console.log(gimcana)
                 console.log(currentPlayers)
                 const card = document.createElement('div')
                 card.className = 'gimcana-card'

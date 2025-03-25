@@ -6,6 +6,7 @@ use App\Models\Gimcana;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Models\Group;
 
 class GimcanaController extends Controller
@@ -87,12 +88,7 @@ class GimcanaController extends Controller
     public function getGimcanas()
     {
         try {
-            $gimcanas = Gimcana::with('groups.members')->get();
-            $gimcanas->each(function ($gimcana) {
-                $gimcana->current_players = $gimcana->groups->sum(function ($group) {
-                    return $group->members->count();
-                });
-            });
+            $gimcanas = Gimcana::all();
             return response()->json($gimcanas);
         } catch (\Exception $e) {
             Log::error('Error al obtener gimcanas: ' . $e->getMessage());
@@ -109,5 +105,21 @@ class GimcanaController extends Controller
             Log::error('Error al obtener detalles de la gimcana: ' . $e->getMessage());
             return response()->json(['error' => 'Error al obtener los detalles de la gimcana'], 500);
         }
+    }
+
+    public function checkIfGimcanaReady($id)
+    {
+        $gimcana = Gimcana::with('groups.members')->findOrFail($id);
+
+        $allGroupsFull = $gimcana->groups->every(function ($group) use ($gimcana) {
+            return $group->members->count() >= $gimcana->max_users_per_group;
+        });
+
+        if ($allGroupsFull) {
+            // Redirigir a la vista del juego
+            return redirect()->route('map.juego');
+        }
+
+        return redirect()->back()->with('error', 'Aún hay grupos incompletos.');
     }
 }

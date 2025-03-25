@@ -30,14 +30,17 @@ Route::middleware(['auth'])->group(function () {
         return view('admin.dashboard');
     });
     Route::get('/map', [MapController::class, 'index'])->name('map.index');
+    Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas']);
     Route::get('/api/gimcanas/{id}', [GimcanaController::class, 'showGimcana']);
     Route::post('/api/group/join', [GroupController::class, 'joinGroup']);
+    Route::get('/gimcana/{id}/check-ready', [GimcanaController::class, 'checkIfGimcanaReady'])->name('gimcana.checkReady');
+    
     Route::get('/api/user/group-status/{gimcanaId}', [GroupController::class, 'checkUserGroupStatus']);
     Route::post('/api/group/leave', [GroupController::class, 'leaveGroup']);
-Route::get('/gimcana', [GimcanaController::class, 'showGimcanaForm'])->name('gimcana.form');
-Route::post('/gimcana/create', [GimcanaController::class, 'createGimcana'])->name('gimcana.create')->middleware('auth');
-Route::post('/gimcana/join', [GimcanaController::class, 'joinGimcana'])->name('gimcana.join')->middleware('auth');
-Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gimcana.get')->middleware('auth');
+    Route::get('/gimcana', [GimcanaController::class, 'showGimcanaForm'])->name('gimcana.form');
+    Route::post('/gimcana/create', [GimcanaController::class, 'createGimcana'])->name('gimcana.create')->middleware('auth');
+    Route::post('/gimcana/join', [GimcanaController::class, 'joinGimcana'])->name('gimcana.join')->middleware('auth');
+    Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gimcana.get')->middleware('auth');
 
     // Rutas para Gimcanas
     Route::get('/gimcanas', [GimcanaController::class, 'index']);
@@ -49,6 +52,11 @@ Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gi
     Route::get('/places/{place}', [PlaceController::class, 'show']);
     Route::put('/places/{place}', [PlaceController::class, 'update']);
     Route::delete('/places/{place}', [PlaceController::class, 'destroy']);
+
+    // Rutas de grupo
+    Route::get('/group/{id}', [GroupController::class, 'showGroup'])->name('group.show');
+    Route::post('/group/join', [GroupController::class, 'joinGroup'])->name('group.join');
+    Route::post('/group/{id}/leave', [GroupController::class, 'leaveGroup'])->name('group.leave');
 
     // API Routes
     Route::prefix('api')->group(function () {
