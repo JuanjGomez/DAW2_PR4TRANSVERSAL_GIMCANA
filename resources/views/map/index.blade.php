@@ -35,6 +35,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             width: 250px;
+            transform: translateX(calc(100% + 20px));
         }
         .distance-filter h3 {
             margin-bottom: 10px;
@@ -95,20 +96,25 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding: 0 15px;
         }
         .map-buttons {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .map-button {
             background-color: #1f2937;
             color: white;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 8px;
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.3s;
+            font-size: 14px;
+            white-space: nowrap;
         }
         .map-button:hover {
             background-color: #374151;
@@ -122,6 +128,8 @@
             padding: 15px;
             margin-top: 80px;
             z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
         }
         .important {
             background-color: darkred;
@@ -145,11 +153,13 @@
         .tag-chip {
             background-color: #f3f4f6;
             color: #4b5563;
-            padding: 8px 12px;
+            padding: 6px 12px;
             border-radius: 9999px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 14px;
+            white-space: nowrap;
         }
         .tag-chip:hover {
             background-color: #e5e7eb;
@@ -203,6 +213,61 @@
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 9999;
+        }
+        /* Media queries para dispositivos móviles */
+        @media (max-width: 768px) {
+            .map-buttons-container {
+                top: 10px;
+            }
+            .map-button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .distance-filter {
+                position: fixed;
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                width: 200px;
+                padding: 10px;
+                z-index: 1002;
+                transform: none;
+            }
+            #filtersSection {
+                margin-top: 60px;
+                padding: 10px;
+                z-index: 1001;
+            }
+            .tag-chip {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+            .modal-content {
+                width: 95%;
+                margin: 10px;
+                padding: 15px;
+            }
+        }
+        /* Media queries para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .map-buttons {
+                gap: 4px;
+            }
+            .map-button {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            .distance-filter {
+                width: 180px;
+                padding: 8px;
+            }
+            .distance-filter h3 {
+                font-size: 14px;
+            }
+            .clear-filter {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -303,12 +368,92 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Inicializar el mapa
-        const map = L.map('map').setView([41.3851, 2.1734], 13);
+        // Inicializar el mapa con opciones de caché
+        const map = L.map('map', {
+            zoomControl: false,
+            attributionControl: false,
+            maxZoom: 19,
+            minZoom: 3,
+            maxBounds: [[-90, -180], [90, 180]],
+            maxBoundsViscosity: 1.0,
+            preferCanvas: true, // Mejor rendimiento en móviles
+            renderer: L.canvas({
+                padding: 0.5,
+                tolerance: 3,
+                className: '',
+                pane: 'overlayPane',
+                attribution: null,
+                zoomAnimation: true,
+                markerZoomAnimation: true,
+                fadeAnimation: true,
+                trackResize: true,
+                updateWhenIdle: 'ifNotMoving',
+                updateWhenZooming: false,
+                updateInterval: 25,
+                zIndex: 0,
+                maxZoom: null,
+                maxNativeZoom: null,
+                minNativeZoom: null,
+                maxBounds: null,
+                maxBoundsViscosity: null,
+                preferCanvas: true,
+                renderer: null,
+                rendererOptions: null,
+                rendererPane: 'overlayPane',
+                rendererAttribution: null,
+                rendererZoomAnimation: true,
+                rendererMarkerZoomAnimation: true,
+                rendererFadeAnimation: true,
+                rendererTrackResize: true,
+                rendererUpdateWhenIdle: 'ifNotMoving',
+                rendererUpdateWhenZooming: false,
+                rendererUpdateInterval: 25,
+                rendererZIndex: 0,
+                rendererMaxZoom: null,
+                rendererMaxNativeZoom: null,
+                rendererMinNativeZoom: null,
+                rendererMaxBounds: null,
+                rendererMaxBoundsViscosity: null,
+                rendererPreferCanvas: true
+            })
+        }).setView([41.3851, 2.1734], 13);
 
-        // Añadir capa de OpenStreetMap
+        // Añadir capa de OpenStreetMap con opciones de caché
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+            minZoom: 3,
+            maxNativeZoom: 19,
+            minNativeZoom: 0,
+            maxBounds: [[-90, -180], [90, 180]],
+            maxBoundsViscosity: 1.0,
+            preferCanvas: true,
+            renderer: L.canvas({
+                padding: 0.5,
+                tolerance: 3,
+                className: '',
+                pane: 'overlayPane',
+                attribution: null,
+                zoomAnimation: true,
+                markerZoomAnimation: true,
+                fadeAnimation: true,
+                trackResize: true,
+                updateWhenIdle: 'ifNotMoving',
+                updateWhenZooming: false,
+                updateInterval: 25,
+                zIndex: 0,
+                maxZoom: null,
+                maxNativeZoom: null,
+                minNativeZoom: null,
+                maxBounds: null,
+                maxBoundsViscosity: null,
+                preferCanvas: true
+            })
+        }).addTo(map);
+
+        // Añadir controles de zoom en la esquina inferior derecha
+        L.control.zoom({
+            position: 'bottomright'
         }).addTo(map);
 
         // Marcador del usuario
@@ -404,14 +549,26 @@
                 if (tagsList) {
                     // Limpiar el contenido actual antes de añadir los nuevos tags
                     tagsList.innerHTML = '';
-                    tags.forEach(tag => {
-                        const tagElement = document.createElement('div');
-                        tagElement.className = `tag-chip ${selectedTags.has(tag.id) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} 
-                            px-4 py-2 rounded-full cursor-pointer transition-colors duration-200`;
-                        tagElement.dataset.id = tag.id;
-                        tagElement.textContent = tag.name;
-                        tagElement.onclick = () => toggleTag(tag.id);
-                        tagsList.appendChild(tagElement);
+                    // Limpiar los tags seleccionados
+                    selectedTags.clear();
+                    
+                    // Crear un Set para evitar duplicados
+                    const uniqueTags = new Set();
+                    
+                    // Ordenar los tags por ID para mantener un orden consistente
+                    const sortedTags = [...tags].sort((a, b) => a.id - b.id);
+                    
+                    sortedTags.forEach(tag => {
+                        if (!uniqueTags.has(tag.id)) {
+                            uniqueTags.add(tag.id);
+                            const tagElement = document.createElement('div');
+                            tagElement.className = `tag-chip ${selectedTags.has(tag.id) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} 
+                                px-4 py-2 rounded-full cursor-pointer transition-colors duration-200`;
+                            tagElement.dataset.id = tag.id;
+                            tagElement.textContent = tag.name;
+                            tagElement.onclick = () => toggleTag(tag.id);
+                            tagsList.appendChild(tagElement);
+                        }
                     });
                 }
             } catch (error) {
@@ -663,13 +820,15 @@
         // Evento para abrir/cerrar la sección de filtros
         document.getElementById('filtrosBtn').addEventListener('click', () => {
             const filtersSection = document.getElementById('filtersSection');
+            const isHidden = filtersSection.classList.contains('hidden');
             filtersSection.classList.toggle('hidden');
-            if (!filtersSection.classList.contains('hidden')) {
-                // Limpiar los tags existentes antes de cargar nuevos
-                const tagsList = document.getElementById('tagsList');
-                if (tagsList) {
-                    tagsList.innerHTML = '';
-                }
+            
+            if (!isHidden) {
+                // Si estamos cerrando los filtros, limpiar los tags seleccionados
+                selectedTags.clear();
+                updateMapMarkers();
+            } else {
+                // Si estamos abriendo los filtros, cargar los tags
                 loadTags();
             }
         });
