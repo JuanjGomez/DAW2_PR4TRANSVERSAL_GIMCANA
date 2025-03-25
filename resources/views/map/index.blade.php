@@ -287,29 +287,20 @@
             </form>
         </div>
 
-        <!-- Filtro de distancia -->
-        <div class="distance-filter">
-            <h3>Filtro por Distancia</h3>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-                Distancia máxima: <span id="distanceValue">5</span> km
-            </label>
-            <input type="range" id="distanceSlider" min="0.5" max="20" step="0.5" value="5" 
-                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-            <div class="distance-controls">
-                <button id="clearDistanceFilter" class="clear-filter">Limpiar Filtro</button>
-            </div>
-        </div>
-
         <!-- Sección de filtros (ahora debajo de los botones) -->
         <div id="filtersSection" class="hidden">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Filtrar por Tags</h2>
-            </div>
-            <div id="tagsList" class="flex flex-wrap gap-2">
-                <!-- Los tags se cargarán dinámicamente aquí como "chips" -->
-            </div>
-            <div class="mt-4">
-                <button id="applyFilters" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Aplicar Filtros</button>
+            <div class="filters-card">
+                <h3>Filtrar por Tags</h3>
+                <div id="tagsList" class="tags-grid">
+                    <!-- Los tags se cargarán dinámicamente aquí como "chips" -->
+                </div>
+                <h3>Filtro por Distancia</h3>
+                <div class="distance-controls">
+                    <label for="distanceSlider">Distancia máxima: <span id="distanceValue">5</span> km</label>
+                    <input type="range" id="distanceSlider" min="0.5" max="20" step="0.5" value="5">
+                </div>
+                <button id="clearDistanceFilter" class="clear-filter">Limpiar Filtro</button>
+                <button id="applyFilters" class="apply-filters-btn">Aplicar Filtros</button>
             </div>
         </div>
     </div>
