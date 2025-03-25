@@ -64,7 +64,7 @@
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold mb-6">Panel de Administrador</h1>
-
+        
         <!-- Pestañas -->
         <div class="mb-6">
             <div class="border-b border-gray-200">
@@ -109,7 +109,29 @@
                         </div>
                         <div class="mb-4">
                             <label for="icon" class="block text-gray-700">Icono</label>
-                            <input type="text" id="icon" name="icon" class="w-full px-4 py-2 border rounded-lg" required>
+                            <input type="hidden" id="icon" name="icon" value="default-marker">
+                            <div class="icon-selector mt-2 flex flex-wrap gap-2">
+                                <div class="icon-option cursor-pointer p-2 border rounded selected" data-value="default-marker">
+                                    <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" alt="Predeterminado" class="w-8 h-8">
+                                    <span class="text-xs block text-center mt-1">Predeterminado</span>
+                                </div>
+                                <div class="icon-option cursor-pointer p-2 border rounded" data-value="museum-marker">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" alt="Museo" class="w-8 h-8">
+                                    <span class="text-xs block text-center mt-1">Museo</span>
+                                </div>
+                                <div class="icon-option cursor-pointer p-2 border rounded" data-value="monument-marker">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" alt="Monumento" class="w-8 h-8">
+                                    <span class="text-xs block text-center mt-1">Monumento</span>
+                                </div>
+                                <div class="icon-option cursor-pointer p-2 border rounded" data-value="restaurant-marker">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" alt="Restaurante" class="w-8 h-8">
+                                    <span class="text-xs block text-center mt-1">Restaurante</span>
+                                </div>
+                                <div class="icon-option cursor-pointer p-2 border rounded" data-value="park-marker">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png" alt="Parque" class="w-8 h-8">
+                                    <span class="text-xs block text-center mt-1">Parque</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="mb-4">
                             <label for="tags" class="block text-gray-700">Tags</label>
@@ -254,7 +276,29 @@
                     </div>
                     <div class="mb-4">
                         <label for="edit-icon" class="block text-gray-700">Icono</label>
-                        <input type="text" id="edit-icon" name="icon" class="w-full px-4 py-2 border rounded-lg" required>
+                        <input type="hidden" id="edit-icon" name="icon" value="default-marker">
+                        <div class="edit-icon-selector mt-2 flex flex-wrap gap-2">
+                            <div class="icon-option cursor-pointer p-2 border rounded selected" data-value="default-marker">
+                                <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" alt="Predeterminado" class="w-8 h-8">
+                                <span class="text-xs block text-center mt-1">Predeterminado</span>
+                            </div>
+                            <div class="icon-option cursor-pointer p-2 border rounded" data-value="museum-marker">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" alt="Museo" class="w-8 h-8">
+                                <span class="text-xs block text-center mt-1">Museo</span>
+                            </div>
+                            <div class="icon-option cursor-pointer p-2 border rounded" data-value="monument-marker">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" alt="Monumento" class="w-8 h-8">
+                                <span class="text-xs block text-center mt-1">Monumento</span>
+                            </div>
+                            <div class="icon-option cursor-pointer p-2 border rounded" data-value="restaurant-marker">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" alt="Restaurante" class="w-8 h-8">
+                                <span class="text-xs block text-center mt-1">Restaurante</span>
+                            </div>
+                            <div class="icon-option cursor-pointer p-2 border rounded" data-value="park-marker">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png" alt="Parque" class="w-8 h-8">
+                                <span class="text-xs block text-center mt-1">Parque</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700">Tags</label>
@@ -365,7 +409,8 @@
             loadCheckpoints();
             setupForms();
             showTab('places');
-            addDebugButton();
+            setupIconSelection();
+            console.log("Configuración de iconos inicializada");
         });
 
         function initMap() {
@@ -616,49 +661,150 @@
         }
 
         function loadPlaces() {
-            fetch('/api/places')
-                .then(response => response.json())
-                .then(data => {
-                    places = data;
-                    const placesList = document.getElementById('placesList');
+            // Definir iconos personalizados para el mapa
+            const markerIcons = {
+                'default-marker': L.icon({
+                    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                }),
+                'museum-marker': L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                }),
+                'monument-marker': L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                }),
+                'restaurant-marker': L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                }),
+                'park-marker': L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                })
+            };
+
+            // Limpiar marcadores existentes
+            if (map && markers) {
+                markers.forEach(marker => map.removeLayer(marker));
+                markers = [];
+            }
+            
+            return fetch('/places', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al cargar los lugares');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Asignar a la variable global
+                places = data;
+                console.log("Lugares cargados:", places.length);
+                
+                // Actualizar la lista de lugares
+                const placesList = document.getElementById('placesList');
+                if (placesList) {
                     placesList.innerHTML = '';
-                    clearMarkers();
-
-                    // Actualizar el selector de lugares en el formulario de checkpoints
-                    const placeSelect = document.getElementById('cp-place');
-                    placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
-
+                    
                     places.forEach(place => {
-                        // Añadir al listado
+                        // Añadir a la lista
                         const placeElement = document.createElement('div');
                         placeElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
                         placeElement.innerHTML = `
                             <h3 class="font-bold">${place.name}</h3>
                             <p class="text-gray-600">${place.address}</p>
+                            <p class="text-sm text-gray-500">Lat: ${place.latitude}, Lng: ${place.longitude}</p>
                             <div class="mt-2">
-                                <button onclick="deletePlace(${place.id})" class="text-red-500 hover:text-red-700">
-                                    Eliminar
-                                </button>
-                                <button onclick="openEditModal(${place.id})" class="text-blue-500 hover:text-blue-700 ml-2">
-                                    Editar
-                                </button>
+                                <button onclick="openEditModal(${place.id})" class="text-blue-500 hover:text-blue-700 ml-2">Editar</button>
+                                <button onclick="deletePlace(${place.id})" class="text-red-500 hover:text-red-700">Eliminar</button>
                             </div>
                         `;
                         placesList.appendChild(placeElement);
-
-                        // Añadir al mapa
-                        const marker = L.marker([place.latitude, place.longitude])
-                            .bindPopup(`<b>${place.name}</b><br>${place.address}`)
-                            .addTo(map);
-                        markers.push(marker);
-
-                        // Añadir al selector
+                    });
+                }
+                
+                // Actualizar el select de lugares
+                const placeSelect = document.getElementById('cp-place');
+                if (placeSelect) {
+                    placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
+                    
+                    places.forEach(place => {
                         const option = document.createElement('option');
                         option.value = place.id;
                         option.textContent = place.name;
                         placeSelect.appendChild(option);
                     });
-                });
+                }
+                
+                // Añadir marcadores al mapa
+                if (map) {
+                    places.forEach(place => {
+                        // Crear icono basado en el valor guardado
+                        let iconUrl;
+                        switch(place.icon) {
+                            case 'default-marker':
+                                iconUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png';
+                                break;
+                            case 'museum-marker':
+                                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png';
+                                break;
+                            case 'monument-marker':
+                                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png';
+                                break;
+                            case 'restaurant-marker':
+                                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png';
+                                break;
+                            case 'park-marker':
+                                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png';
+                                break;
+                            default:
+                                iconUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png';
+                        }
+                        
+                        const icon = L.icon({
+                            iconUrl: iconUrl,
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34],
+                            shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                            shadowSize: [41, 41]
+                        });
+                        
+                        const marker = L.marker([place.latitude, place.longitude], { icon: icon })
+                            .addTo(map)
+                            .bindPopup(`<b>${place.name}</b><br>${place.address}`);
+                        markers.push(marker);
+                    });
+                }
+                
+                return places;
+            });
         }
 
         function addTag(id, name, formType) {
@@ -976,6 +1122,15 @@
                     document.getElementById('edit-latitude').value = place.latitude;
                     document.getElementById('edit-longitude').value = place.longitude;
                     document.getElementById('edit-icon').value = place.icon;
+                    
+                    // Seleccionar visualmente el icono correcto
+                    const editIconSelector = document.querySelector('.edit-icon-selector');
+                    editIconSelector.querySelectorAll('.icon-option').forEach(option => {
+                        option.classList.remove('selected', 'bg-blue-100', 'border-blue-500');
+                        if (option.dataset.value === place.icon) {
+                            option.classList.add('selected', 'bg-blue-100', 'border-blue-500');
+                        }
+                    });
 
                     // Limpiar los tags seleccionados
                     const tagsContainer = document.getElementById('edit-tags-container');
@@ -1020,6 +1175,7 @@
                         });
 
                     document.getElementById('editModal').classList.remove('hidden');
+                    setupIconSelection();
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -1313,6 +1469,39 @@
                 });
             });
         });
+
+        function setupIconSelection() {
+            // Para el formulario principal
+            document.querySelectorAll('.icon-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // Obtener el contenedor padre
+                    const container = this.closest('.icon-selector, .edit-icon-selector');
+                    if (!container) return;
+                    
+                    // Quitar selección de todos los iconos en este contenedor
+                    container.querySelectorAll('.icon-option').forEach(opt => {
+                        opt.classList.remove('selected', 'bg-blue-100');
+                    });
+                    
+                    // Añadir selección a este icono
+                    this.classList.add('selected', 'bg-blue-100');
+                    
+                    // Actualizar el input correspondiente
+                    const isEdit = container.classList.contains('edit-icon-selector');
+                    const inputId = isEdit ? 'edit-icon' : 'icon';
+                    document.getElementById(inputId).value = this.dataset.value;
+                    
+                    console.log(`Icono ${isEdit ? 'de edición ' : ''}seleccionado:`, this.dataset.value);
+                });
+            });
+        }
+
+        // Modificar openEditModal para ejecutar setupIconSelection después de cargar los datos
+        const originalOpenEditModal = openEditModal;
+        openEditModal = function(id) {
+            originalOpenEditModal(id);
+            setTimeout(setupIconSelection, 100); // Dar tiempo para que se actualice el DOM
+        };
     </script>
 </body>
 </html>

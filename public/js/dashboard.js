@@ -374,8 +374,8 @@ function loadPlaces(map, markers) {
                 <p class="text-gray-600">${place.address}</p>
                 <p class="text-sm text-gray-500">Lat: ${place.latitude}, Lng: ${place.longitude}</p>
                 <div class="mt-2">
-                    <button onclick="editPlace(${place.id})" class="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600">Editar</button>
-                    <button onclick="deletePlace(${place.id})" class="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600">Eliminar</button>
+                    <button onclick="openEditModal(${place.id})" class="text-blue-500 hover:text-blue-700 ml-2">Editar</button>
+                    <button onclick="deletePlace(${place.id})" class="text-red-500 hover:text-red-700">Eliminar</button>
                 </div>
             `;
             placesList.appendChild(placeElement);
@@ -398,9 +398,56 @@ function loadPlaces(map, markers) {
         // Añadir marcadores al mapa
         if (map) {
             places.forEach(place => {
-                const marker = L.marker([place.latitude, place.longitude])
+                // Determinar qué icono usar basado en el valor guardado
+                let icon;
+                if (place.icon === 'default-marker') {
+                    icon = L.icon({
+                        iconUrl: '/images/markers/default-marker.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34]
+                    });
+                } else if (place.icon === 'museum-marker') {
+                    icon = L.icon({
+                        iconUrl: '/images/markers/museum-marker.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34]
+                    });
+                } else if (place.icon === 'monument-marker') {
+                    icon = L.icon({
+                        iconUrl: '/images/markers/monument-marker.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34]
+                    });
+                } else if (place.icon === 'restaurant-marker') {
+                    icon = L.icon({
+                        iconUrl: '/images/markers/restaurant-marker.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34]
+                    });
+                } else if (place.icon === 'park-marker') {
+                    icon = L.icon({
+                        iconUrl: '/images/markers/park-marker.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34]
+                    });
+                } else {
+                    // Icono por defecto si no hay coincidencia
+                    icon = L.icon({
+                        iconUrl: '/images/markers/default-marker.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34]
+                    });
+                }
+                
+                const marker = L.marker([place.latitude, place.longitude], { icon: icon })
                     .addTo(map)
-                    .bindPopup(place.name);
+                    .bindPopup(`<b>${place.name}</b><br>${place.address}`);
                 markers.push(marker);
             });
         }
