@@ -11,11 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('group_member', function (Blueprint $table) {
+        Schema::create('gimcanas', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('group_id')->constrained('groups');
-            $table->foreignId('user_id')->constrained('users');
-            $table->timestamp('joined_at')->useCurrent();
+            $table->string('name');
+            $table->string('description');
+            $table->integer('max_groups');
+            $table->integer('max_users_per_group');
+            $table->enum('status', ['active', 'waiting'])->default('waiting');
             $table->timestamps();
         });
     }
@@ -25,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('group_member');
+        Schema::dropIfExists('gimcanas');
     }
 };

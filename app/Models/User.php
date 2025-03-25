@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use App\Models\Role;
-use App\Models\Challenge;
 use App\Models\Group;
 use App\Models\Place;
 use Illuminate\Notifications\Notifiable;
@@ -17,9 +16,16 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'user';
+
+    /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
@@ -31,7 +37,7 @@ class User extends Authenticatable
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -39,31 +45,22 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+    ];
 
     public function role()
     {
         return $this->belongsTo(Role::class);
     }
-
-    public function challenges()
-    {
-        return $this->hasMany(Challenge::class);
-    }
-
     public function groups()
     {
-        return $this->hasMany(Group::class);
+        return $this->belongsToMany(Group::class, 'group_members');
     }
 
     public function memberGroups()
@@ -75,7 +72,7 @@ class User extends Authenticatable
 
     public function favoritePlaces()
     {
-        return $this->belongsToMany(Place::class, 'user_favorite')
+        return $this->belongsToMany(Place::class, 'favorite_places')
                     ->withTimestamps();
     }
 }

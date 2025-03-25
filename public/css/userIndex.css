@@ -1,0 +1,320 @@
+.map-buttons {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.lobby-buttons {
+    position: absolute;
+    top: 90px; /* Ajusta según sea necesario */
+    left: 53.5%;
+    transform: translateX(-60%);
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+    background-color: #1f2937;
+    padding: 20px;
+    padding-left: 50px;
+    padding-right: 50px;
+    border-radius: 8px;
+}
+
+.map-button {
+    background-color: #1f2937;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.map-button:hover {
+    background-color: #374151;
+}
+
+.lobby-button {
+    background-color: white;
+    color: black;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.lobby-button:hover {
+    background-color: #e2e8f0; /* Color de fondo al pasar el ratón */
+}
+
+.hidden {
+    display: none !important;
+}
+
+#gimcanaModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /* Fondo semi-transparente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000; /* Asegúrate de que sea más alto que el mapa */
+}
+
+#gimcanaModal .modal-content {
+    background-color: #1f2937; /* Color de fondo */
+    color: white; /* Texto blanco para contraste */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#modal-content {
+    background-color: #1f2937; /* Color de fondo */
+    color: white; /* Texto blanco para contraste */
+    padding: 30px;
+    border-radius: 10px;
+    width: 80%; /* Más amplio */
+    max-width: 600px; /* Ancho máximo */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#gimcanaList li {
+    cursor: pointer;
+    padding: 10px;
+    transition: background-color 0.3s;
+}
+
+#gimcanaList li:hover {
+    background-color: #374151; /* Color al pasar el ratón */
+}
+
+#gimcanaList {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    justify-content: center; /* Centra las tarjetas horizontalmente */
+    padding: 20px;
+}
+
+.gimcana-card {
+    background-color: #2d6a4f;
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 160px;
+    width: 160px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+.gimcana-card:hover {
+    transform: scale(1.1);
+    background-color: #1b4332;
+}
+
+.gimcana-card .icon {
+    margin-top: 10px;
+    font-size: 1.8rem;
+}
+
+.important {
+    background-color: darkred;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.important:hover {
+    background-color: #a00;
+}
+
+#gimcanaDetailsModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /* Fondo semi-transparente */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000; /* Asegúrate de que sea más alto que otros elementos */
+}
+
+.logout-form {
+    margin-left: auto;
+}
+
+#closeModal {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 2rem;
+    color: #ff4d4d;
+    transition: color 0.3s;
+}
+
+#closeModal:hover {
+    color: #ff1a1a;
+}
+
+#gimcanaDetailsContent {
+    background-color: #1f2937; /* Color del botón de Gimcanas */
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    width: 80%;
+    max-width: 600px;
+    transition: transform 0.3s, background-color 0.3s;
+    position: relative;
+}
+
+.group-container {
+    background-color: #2d6a4f; /* Verde */
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 45%; /* Ajusta el ancho para dos por fila */
+    margin: 5px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.group-container:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+}
+
+.group-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.join-group {
+    background-color: #1f2937; /* Botón oscuro */
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.join-group:hover {
+    background-color: #374151; /* Color al pasar el ratón */
+}
+
+#closeDetailsModal {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: #ff4d4d;
+    transition: color 0.3s;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+#closeDetailsModal:hover {
+    color: #ff1a1a;
+}
+
+#gimcanaDetailsModal {
+    z-index: 1000;
+}
+.swal2-container {
+    z-index: 2000 !important;
+}
+
+@media (max-width: 430px) {
+    #modal-content {
+        width: 90%; /* Ajusta el ancho para pantallas pequeñas */
+        padding: 20px; /* Reduce el padding */
+    }
+
+    .gimcana-card {
+        width: 100%; /* Ocupa todo el ancho disponible */
+        height: auto; /* Ajusta la altura automáticamente */
+        margin-bottom: 10px; /* Espacio entre tarjetas */
+    }
+
+    #gimcanaList {
+        grid-template-columns: 1fr; /* Una columna en pantallas pequeñas */
+        gap: 10px; /* Reduce el espacio entre elementos */
+    }
+
+    .map-buttons {
+        top: 10px; /* Ajusta la posición superior */
+        left: 10px; /* Ajusta la posición izquierda */
+        transform: none; /* Elimina la transformación */
+    }
+
+    .important {
+        padding: 5px; /* Reduce el padding del botón */
+    }
+}
+
+#map {
+    height: calc(100vh - 200px); /* Ajustar la altura del mapa para dejar espacio para los filtros */
+}
+
+#tagsList {
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.tag-chip:hover {
+    opacity: 0.9;
+}
+
+.tag-chip.selected {
+    background-color: #3b82f6;
+    color: white;
+}
+
+#filtersModal {
+    z-index: 1000; /* Asegúrate de que el modal esté por encima de otros elementos */
+}
+
+#filtersSection {
+    margin-top: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}

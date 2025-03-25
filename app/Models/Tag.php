@@ -2,11 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Place;
+
 class Tag extends Model
 {
-    protected $fillable = ['name'];
+    use HasFactory;
+
+    protected $table = 'tags';
+
+    protected $fillable = [
+        'name'
+    ];
 
     public function places()
     {

@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('competitions', function (Blueprint $table) {
+        Schema::create('user_checkpoints', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->foreignId('challenge_id')->constrained('challenges');
-            $table->dateTime('start_date');
-            $table->dateTime('end_date');
-            $table->enum('status', ['pending', 'active', 'completed']);
+            $table->foreignId('user_id')->constrained('user');
+            $table->foreignId('group_id')->constrained('groups');
+            $table->foreignId('checkpoint_id')->constrained('checkpoints');
+            $table->boolean('completed')->default(false);
             $table->timestamps();
         });
     }
@@ -27,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('competitions');
+        Schema::dropIfExists('group_checkpoints');
     }
 };

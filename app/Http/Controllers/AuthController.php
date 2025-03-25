@@ -29,7 +29,7 @@ class AuthController extends Controller
             if ($user->role->name === 'admin') {
                 return redirect()->intended('/admin/dashboard');
             } else {
-                return redirect()->route('gimcana.form');
+                return redirect()->route('map.index');
             }
         }
 
@@ -37,5 +37,13 @@ class AuthController extends Controller
         return back()->withErrors([
             'email' => 'Las credenciales proporcionadas no coinciden con nuestros registros.',
         ])->withInput($request->only('email'));
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
     }
 }

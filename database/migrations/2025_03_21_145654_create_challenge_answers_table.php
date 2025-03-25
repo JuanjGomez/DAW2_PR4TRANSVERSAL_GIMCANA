@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_favorite', function (Blueprint $table) {
+        Schema::create('challenge_answers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('place_id')->constrained('places');
+            $table->foreignId('checkpoint_id')->constrained('checkpoints');
+            $table->text('answer');
+            $table->boolean('is_correct')->default(false);
             $table->timestamps();
         });
     }
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_favorite');
+        Schema::dropIfExists('challenge_answers');
     }
 };

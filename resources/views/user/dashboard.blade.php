@@ -75,7 +75,11 @@
                                     const routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${userLatLng.lat},${userLatLng.lng}&destination=${placeLatLng.lat},${placeLatLng.lng}`;
                                     window.open(routeUrl, '_blank');
                                 } else {
-                                    alert('No se pudo obtener tu ubicación.');
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Ubicación no disponible',
+                                        text: 'No se pudo obtener tu ubicación.'
+                                    });
                                 }
                             };
                         });

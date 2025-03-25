@@ -3,23 +3,25 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Challenge;
-use App\Models\Place;
-use App\Models\CheckpointProgress;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Checkpoint extends Model
 {
+    use HasFactory;
+
+    protected $table = 'checkpoints';
+
     protected $fillable = [
-        'challenge_id',
+        'name',
+        'gimcana_id',
         'place_id',
+        'challenge',
         'clue',
-        'test',
-        'order'
+        'order',
     ];
 
-    public function challenge()
+    public function gimcana()
     {
-        return $this->belongsTo(Challenge::class);
+        return $this->belongsTo(Gimcana::class);
     }
 
     public function place()
@@ -27,8 +29,4 @@ class Checkpoint extends Model
         return $this->belongsTo(Place::class);
     }
 
-    public function progress()
-    {
-        return $this->hasMany(CheckpointProgress::class);
-    }
 }

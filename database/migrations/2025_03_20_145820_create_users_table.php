@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('checkpoints', function (Blueprint $table) {
+        Schema::create('user', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('challenge_id')->constrained('challenges');
-            $table->foreignId('place_id')->constrained('places');
-            $table->text('clue')->nullable();
-            $table->string('test')->nullable();
-            $table->integer('order');
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->foreignId('role_id')->constrained('roles');
+            $table->rememberToken();
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('checkpoints');
+        Schema::dropIfExists('user');
     }
 };

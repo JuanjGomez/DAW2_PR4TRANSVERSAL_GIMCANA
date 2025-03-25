@@ -3,45 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\User;
-use App\Models\Challenge;
-use App\Models\Competition;
-use App\Models\CheckpointProgress;
-use App\Models\Leaderboard;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Group extends Model
 {
-    protected $fillable = ['name', 'user_id', 'challenge_id', 'code'];
+    use HasFactory;
 
-    public function creator()
-    {
-        return $this->belongsTo(User::class, 'user_id');
-    }
+    protected $table = 'groups';
 
-    public function challenge()
+    protected $fillable = [
+        'name',
+        'current_checkpoint',
+        'gimcana_id',
+    ];
+
+    public function gimcana()
     {
-        return $this->belongsTo(Challenge::class);
+        return $this->belongsTo(Gimcana::class);
     }
 
     public function members()
     {
-        return $this->belongsToMany(User::class, 'group_member')
-                    ->withPivot('joined_at')
-                    ->withTimestamps();
+        return $this->belongsToMany(User::class, 'group_members');
     }
 
-    public function competitions()
-    {
-        return $this->belongsToMany(Competition::class);
-    }
-
-    public function checkpointProgress()
-    {
-        return $this->hasMany(CheckpointProgress::class);
-    }
-
-    public function leaderboardEntries()
-    {
-        return $this->hasMany(Leaderboard::class);
-    }
 }
