@@ -76,7 +76,7 @@ Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gi
     });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
+    //Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
 
     Route::get('/gimcanas', [GimcanaController::class, 'index']);
     Route::post('/gimcanas', [GimcanaController::class, 'store']);
