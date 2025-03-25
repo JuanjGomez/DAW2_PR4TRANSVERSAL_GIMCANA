@@ -12,7 +12,6 @@ class PlaceController extends Controller
 {
     public function index(Request $request)
     {
-<<<<<<< HEAD
         try {
             $query = Place::with('tags');
 
@@ -29,14 +28,10 @@ class PlaceController extends Controller
             Log::error('Error fetching places: ' . $e->getMessage());
             return response()->json(['error' => 'Error fetching places'], 500);
         }
-=======
-        return Place::with('tags')->get();
->>>>>>> 4bf6ee045fabac475af51b364c62b4396661ab98
     }
 
     public function store(Request $request)
     {
-<<<<<<< HEAD
         try {
             $validator = Validator::make($request->all(), [
                 'name' => 'required|string|max:255',
@@ -47,21 +42,9 @@ class PlaceController extends Controller
                 'tags' => 'nullable|array',
                 'tags.*' => 'exists:tags,id'
             ]);
-=======
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'icon' => 'required|string|max:255',
-            'tags' => 'sometimes|array',
-            'tags.*' => 'exists:tags,id'
-        ]);
->>>>>>> 4bf6ee045fabac475af51b364c62b4396661ab98
 
         $place = Place::create($validatedData);
 
-<<<<<<< HEAD
             $place = Place::create($request->except('tags'));
 
             // Asignar etiquetas si se proporcionan
@@ -75,11 +58,6 @@ class PlaceController extends Controller
         } catch (\Exception $e) {
             Log::error('Error creating place: ' . $e->getMessage());
             return response()->json(['error' => 'Error creating place'], 500);
-=======
-        // Asociar tags si se proporcionan
-        if ($request->has('tags')) {
-            $place->tags()->sync($request->tags);
->>>>>>> 4bf6ee045fabac475af51b364c62b4396661ab98
         }
 
         return response()->json($place->load('tags'), 201);
@@ -87,16 +65,12 @@ class PlaceController extends Controller
 
     public function show(Place $place)
     {
-<<<<<<< HEAD
         try {
             return response()->json($place->load('tags'));
         } catch (\Exception $e) {
             Log::error('Error fetching place: ' . $e->getMessage());
             return response()->json(['error' => 'Error fetching place'], 500);
         }
-=======
-        return $place->load('tags');
->>>>>>> 4bf6ee045fabac475af51b364c62b4396661ab98
     }
 
     public function update(Request $request, Place $place)

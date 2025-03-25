@@ -14,12 +14,7 @@ class Gimcana extends Model
         'name',
         'description',
         'max_groups',
-<<<<<<< HEAD
         'max_users_per_group'
-=======
-        'max_users_per_group',
-        'status',
->>>>>>> 4bf6ee045fabac475af51b364c62b4396661ab98
     ];
 
     public function groups()

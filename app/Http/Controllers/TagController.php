@@ -4,17 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Tag;
 use Illuminate\Http\Request;
-<<<<<<< HEAD
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-=======
->>>>>>> 4bf6ee045fabac475af51b364c62b4396661ab98
 
 class TagController extends Controller
 {
     public function index()
     {
-<<<<<<< HEAD
         try {
             $tags = Tag::withCount('places')->get();
             return response()->json($tags);
@@ -66,9 +62,5 @@ class TagController extends Controller
             Log::error('Error fetching places by tag: ' . $e->getMessage());
             return response()->json(['error' => 'Error fetching places'], 500);
         }
-=======
-        $tags = Tag::all();
-        return response()->json($tags);
->>>>>>> 4bf6ee045fabac475af51b364c62b4396661ab98
     }
 } 

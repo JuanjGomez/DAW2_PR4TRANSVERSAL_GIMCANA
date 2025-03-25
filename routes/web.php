@@ -8,15 +8,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\CheckpointController;
 use App\Http\Controllers\ChallengeAnswerController;
-<<<<<<< HEAD
 use App\Http\Controllers\TagController;
 
-=======
-use App\Http\Controllers\MapController;
-use App\Http\Controllers\TagController;
-use App\Http\Controllers\GroupController;
-use App\Http\Controllers\FavoritePlaceController;
->>>>>>> 4bf6ee045fabac475af51b364c62b4396661ab98
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
