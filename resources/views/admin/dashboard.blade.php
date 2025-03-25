@@ -63,7 +63,15 @@
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-3xl font-bold mb-6">Panel de Administrador</h1>
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">Panel de Administrador</h1>
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600">
+                    Logout
+                </button>
+            </form>
+        </div>
         
         <!-- Pestañas -->
         <div class="mb-6">
