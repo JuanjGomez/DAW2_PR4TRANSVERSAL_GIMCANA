@@ -38,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
     // Rutas de la API
     Route::prefix('api')->group(function () {
         Route::get('/places', [PlaceController::class, 'index']);
+        Route::get('/places/distance', [PlaceController::class, 'getPlacesByDistance']);
         Route::get('/tags', [TagController::class, 'index']);
         Route::get('/gimcanas', [GimcanaController::class, 'index']);
         Route::get('/gimcanas/{id}', [GimcanaController::class, 'showGimcana']);
