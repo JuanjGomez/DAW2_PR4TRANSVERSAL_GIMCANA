@@ -218,6 +218,7 @@
                                 <!-- Se llenará dinámicamente -->
                             </select>
                         </div>
+                        
                         <div class="mb-4">
                             <label for="cp-gimcana" class="block text-gray-700">Gimcana</label>
                             <select id="cp-gimcana" name="gimcana_id" class="w-full px-4 py-2 border rounded-lg" required>
@@ -225,63 +226,39 @@
                                 <!-- Se llenará dinámicamente -->
                             </select>
                         </div>
-                        <div class="mb-4">
-                            <label for="cp-challenge" class="block text-gray-700">Reto</label>
-                            <textarea id="cp-challenge" name="challenge" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
-                        </div>
-                        <div class="mb-4">
-                            <label for="cp-clue" class="block text-gray-700">Pista</label>
-                            <textarea id="cp-clue" name="clue" rows="2" class="w-full px-4 py-2 border rounded-lg" required></textarea>
-                        </div>
-                        <div class="mb-4">
-                            <label for="cp-order" class="block text-gray-700">Orden</label>
-                            <input type="number" id="cp-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
-                        </div>
-                        <div id="answers-container" class="mb-4">
-                            <label class="block text-gray-700">Respuestas</label>
-                            <div id="answer-list">
-                                <!-- Se llenará dinámivar places = [];
-                                var gimcanas = [];
-                                
-                                function addAnswer() {
-                                    const answerList = document.getElementById('answer-list');
-                                    const answerCount = answerList.children.length;
-                                    
-                                    const answerDiv = document.createElement('div');
-                                    answerDiv.className = 'flex items-center mb-2';
-                                    
-                                    answerDiv.innerHTML = `
-                                        <input type="text" name="answers[]" class="w-full px-3 py-2 border rounded-lg" placeholder="Respuesta">
-                                        <input type="radio" name="correct" value="${answerCount}" class="ml-2">
-                                        <button type="button" onclick="removeAnswer(this)" class="ml-2 text-red-500 hover:text-red-700">Eliminar</button>
-                                    `;
-                                    
-                                    answerList.appendChild(answerDiv);
-                                }
-                                
-                                function removeAnswer(button) {
-                                    const answerDiv = button.parentElement;
-                                    answerDiv.remove();
-                                }
-                                
-                                document.addEventListener('DOMContentLoaded', function() {
-                                    // Add a default answer input
-                                    addAnswer();
-                                
-                                    // Initialize the map
-                                    const map = L.map('map').setView([40.4168, -3.7038], 6);
-                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                        attribution: ' OpenStreetMap contributors'
-                                    }).addTo(map);
-                                
-                                    // Other initialization code...
-                                });
+                        
+                            <div class="mb-4">
+                                <label for="cp-challenge" class="block text-gray-700">Reto</label>
+                                <textarea id="cp-challenge" name="challenge" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
                             </div>
-                            <button type="button" onclick="addAnswer()" class="mt-2 bg-blue-500 text-white py-1 px-3 rounded-lg hover:bg-blue-600">Añadir Respuesta</button>
+                        
+                            <div class="mb-4">
+                                <label for="cp-clue" class="block text-gray-700">Pista</label>
+                                <textarea id="cp-clue" name="clue" rows="2" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                            </div>
+                        
+                            <div class="mb-4">
+                                <label for="cp-order" class="block text-gray-700">Orden</label>
+                                <input type="number" id="cp-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
                         </div>
-                        <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                            Añadir Punto de Control
-                        </button>
+                        
+                        <!-- Sección de respuestas -->
+                            <div class="mb-4">
+                            <label class="block text-gray-700 mb-2">Respuestas</label>
+                            <div id="answers-container" class="space-y-2">
+                                <!-- Las respuestas se añadirán aquí dinámicamente -->
+                            </div>
+                            <div class="mt-2 flex justify-between">
+                                <button type="button" onclick="addAnswer()" class="bg-green-500 text-white py-1 px-3 rounded-lg hover:bg-green-600">
+                                    Añadir Respuesta
+                                </button>
+                                <span class="text-sm text-gray-500">Selecciona la respuesta correcta</span>
+                            </div>
+                        </div>
+                        
+                            <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                                Añadir Punto de Control
+                            </button>
                     </form>
                 </div>
 
@@ -401,36 +378,56 @@
 
         <!-- Modal para editar Checkpoint -->
         <div id="editCheckpointModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
-            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
                 <h2 class="text-xl font-bold mb-4">Editar Punto de Control</h2>
                 <form id="editCheckpointForm">
                     <input type="hidden" id="edit-checkpoint-id" name="id">
-                    <div class="mb-4">
-                        <label for="edit-checkpoint-place" class="block text-gray-700">Lugar</label>
-                        <select id="edit-checkpoint-place" name="place_id" class="w-full px-4 py-2 border rounded-lg" required>
-                            <option value="">Selecciona un lugar</option>
-                            <!-- Se llenará dinámicamente -->
-                        </select>
+                    
+                        <div class="mb-4">
+                            <label for="edit-checkpoint-place" class="block text-gray-700">Lugar</label>
+                            <select id="edit-checkpoint-place" name="place_id" class="w-full px-4 py-2 border rounded-lg" required>
+                                <option value="">Selecciona un lugar</option>
+                                <!-- Se llenará dinámicamente -->
+                            </select>
+                        </div>
+                    
+                        <div class="mb-4">
+                            <label for="edit-checkpoint-gimcana" class="block text-gray-700">Gimcana</label>
+                            <select id="edit-checkpoint-gimcana" name="gimcana_id" class="w-full px-4 py-2 border rounded-lg" required>
+                                <option value="">Selecciona una gimcana</option>
+                                <!-- Se llenará dinámicamente -->
+                            </select>
                     </div>
-                    <div class="mb-4">
-                        <label for="edit-checkpoint-gimcana" class="block text-gray-700">Gimcana</label>
-                        <select id="edit-checkpoint-gimcana" name="gimcana_id" class="w-full px-4 py-2 border rounded-lg" required>
-                            <option value="">Selecciona una gimcana</option>
-                            <!-- Se llenará dinámicamente -->
-                        </select>
-                    </div>
+                    
                     <div class="mb-4">
                         <label for="edit-checkpoint-challenge" class="block text-gray-700">Reto</label>
                         <textarea id="edit-checkpoint-challenge" name="challenge" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
-                    </div>
+    </div>
+
                     <div class="mb-4">
                         <label for="edit-checkpoint-clue" class="block text-gray-700">Pista</label>
                         <textarea id="edit-checkpoint-clue" name="clue" rows="2" class="w-full px-4 py-2 border rounded-lg" required></textarea>
-                    </div>
+                            </div>
+                    
                     <div class="mb-4">
                         <label for="edit-checkpoint-order" class="block text-gray-700">Orden</label>
                         <input type="number" id="edit-checkpoint-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
                     </div>
+                    
+                    <!-- Sección de respuestas para edición -->
+                    <div class="mb-4">
+                        <label class="block text-gray-700 mb-2">Respuestas</label>
+                        <div id="edit-answers-container" class="space-y-2">
+                            <!-- Las respuestas se añadirán aquí dinámicamente -->
+                        </div>
+                        <div class="mt-2 flex justify-between">
+                            <button type="button" onclick="addEditAnswer()" class="bg-green-500 text-white py-1 px-3 rounded-lg hover:bg-green-600">
+                                Añadir Respuesta
+                            </button>
+                            <span class="text-sm text-gray-500">Selecciona la respuesta correcta</span>
+                        </div>
+                    </div>
+                    
                     <div class="flex justify-end space-x-2">
                         <button type="button" onclick="closeEditCheckpointModal()" class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400">
                             Cancelar
@@ -646,7 +643,24 @@
                     const clue = document.getElementById('cp-clue').value;
                     const order = document.getElementById('cp-order').value;
                     
-                    // Validar que todos los campos obligatorios estén completos
+                    // Obtener las respuestas
+                    const answers = Array.from(document.querySelectorAll('#answers-container input[name="answers[]"]'))
+                        .map(input => input.value);
+                    
+                    // Obtener la respuesta correcta
+                    const correctAnswerRadio = document.querySelector('input[name="correct_answer"]:checked');
+                    const correctAnswer = correctAnswerRadio ? parseInt(correctAnswerRadio.value) : 0;
+                    
+                    // Validaciones
+                    if (answers.length === 0) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Respuestas incompletas',
+                            text: 'Añade al menos una respuesta al reto'
+                        });
+                        return;
+                    }
+                    
                     if (!placeId || !gimcanaId || !challenge || !clue || !order) {
                         Swal.fire({
                             icon: 'error',
@@ -662,10 +676,12 @@
                         gimcana_id: gimcanaId,
                         challenge: challenge,
                         clue: clue,
-                        order: order
+                        order: order,
+                        answers: answers,
+                        correct_answer: correctAnswer
                     };
                     
-                    // Enviar datos mediante fetch API
+                    // Enviar datos
                     fetch('/api/checkpoints', {
                         method: 'POST',
                         headers: {
@@ -688,14 +704,17 @@
                         document.getElementById('cp-clue').value = '';
                         document.getElementById('cp-order').value = '';
                         
-                        // Mostrar mensaje de éxito y recargar los checkpoints
+                        // Limpiar las respuestas excepto una
+                        const answersContainer = document.getElementById('answers-container');
+                        answersContainer.innerHTML = '';
+                        addAnswer(); // Añadir una respuesta vacía
+                        
                         Swal.fire({
                             icon: 'success',
                             title: '¡Éxito!',
                             text: 'Punto de control añadido correctamente'
                         });
                         
-                        // Recargar los checkpoints
                         loadCheckpoints();
                     })
                     .catch(error => {
@@ -980,10 +999,16 @@
         }
 
         function loadCheckpoints() {
+            console.log("Cargando checkpoints...");
             fetch('/api/checkpoints')
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar los checkpoints');
+                    }
+                    return response.json();
+                })
                 .then(checkpoints => {
-                    console.log("Checkpoints cargados:", checkpoints.length);
+                    console.log("Checkpoints cargados:", checkpoints);
                     
                     const checkpointsList = document.getElementById('checkpointsList');
                     if (!checkpointsList) {
@@ -1006,13 +1031,25 @@
                         const placeName = checkpoint.place ? checkpoint.place.name : 'Lugar no encontrado';
                         const gimcanaName = checkpoint.gimcana ? checkpoint.gimcana.name : 'Gimcana no encontrada';
                         
+                        // Crear HTML para las respuestas, resaltando la correcta
+                        let answersHTML = '';
+                        if (checkpoint.answers && checkpoint.answers.length > 0) {
+                            answersHTML = '<div class="mt-2"><strong>Respuestas:</strong><ul class="list-disc pl-5">';
+                            checkpoint.answers.forEach((answer, index) => {
+                                const isCorrect = index === checkpoint.correct_answer;
+                                answersHTML += `<li class="${isCorrect ? 'text-green-600 font-bold' : ''}">${answer}${isCorrect ? ' ✓' : ''}</li>`;
+                            });
+                            answersHTML += '</ul></div>';
+                        }
+                        
                         checkpointElement.innerHTML = `
                             <h3 class="font-bold">${placeName} (Orden: ${checkpoint.order})</h3>
                             <p class="text-gray-600"><strong>Gimcana:</strong> ${gimcanaName}</p>
                             <p class="text-gray-600"><strong>Reto:</strong> ${checkpoint.challenge}</p>
                             <p class="text-gray-500"><strong>Pista:</strong> ${checkpoint.clue}</p>
+                            ${answersHTML}
                             <div class="mt-2">
-                                <button onclick="deleteCheckpoint(${checkpoint.id})" class="text-red-500 hover:text-red-700">
+                                <button onclick="deleteCheckpoint(${checkpoint.id})" class="text-red-500 hover:text-red-700 mr-2">
                                     Eliminar
                                 </button>
                                 <button onclick="openEditCheckpointModal(${checkpoint.id})" class="text-blue-500 hover:text-blue-700">
@@ -1041,7 +1078,7 @@
                     console.error('Error cargando checkpoints:', error);
                     const checkpointsList = document.getElementById('checkpointsList');
                     if (checkpointsList) {
-                        checkpointsList.innerHTML = '<p class="text-red-500">Error al cargar los puntos de control.</p>';
+                        checkpointsList.innerHTML = '<p class="text-red-500">Error al cargar los puntos de control: ' + error.message + '</p>';
                     }
                 });
         }
@@ -1375,11 +1412,117 @@
             document.getElementById('editGimcanaModal').classList.add('hidden');
         }
 
-        // Agregar o modificar la función para abrir el modal de edición de checkpoints
+        // Funciones para manejar las respuestas
+        function addAnswer() {
+            const answersContainer = document.getElementById('answers-container');
+            const answerCount = answersContainer.children.length;
+            
+            const answerDiv = document.createElement('div');
+            answerDiv.className = 'flex items-center space-x-2 bg-gray-50 p-2 rounded';
+            
+            answerDiv.innerHTML = `
+                <input type="radio" name="correct_answer" value="${answerCount}" class="mr-2" ${answerCount === 0 ? 'checked' : ''}>
+                <input type="text" name="answers[]" class="flex-grow px-3 py-2 border rounded-lg" placeholder="Respuesta" required>
+                <button type="button" class="text-red-500 hover:text-red-700" onclick="removeAnswer(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            `;
+            
+            answersContainer.appendChild(answerDiv);
+        }
+
+        function removeAnswer(button) {
+            const answerDiv = button.closest('div');
+            answerDiv.remove();
+            
+            // Actualizar los valores de los inputs radio para mantener la coherencia
+            const answersContainer = document.getElementById('answers-container');
+            Array.from(answersContainer.querySelectorAll('input[type="radio"]')).forEach((radio, index) => {
+                radio.value = index;
+            });
+        }
+
+        function addEditAnswer() {
+            const answersContainer = document.getElementById('edit-answers-container');
+            const answerCount = answersContainer.children.length;
+            
+            const answerDiv = document.createElement('div');
+            answerDiv.className = 'flex items-center space-x-2 bg-gray-50 p-2 rounded';
+            
+            answerDiv.innerHTML = `
+                <input type="radio" name="edit_correct_answer" value="${answerCount}" class="mr-2" ${answerCount === 0 ? 'checked' : ''}>
+                <input type="text" name="edit_answers[]" class="flex-grow px-3 py-2 border rounded-lg" placeholder="Respuesta" required>
+                <button type="button" class="text-red-500 hover:text-red-700" onclick="removeEditAnswer(this)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+            `;
+            
+            answersContainer.appendChild(answerDiv);
+        }
+
+        function removeEditAnswer(button) {
+            const answerDiv = button.closest('div');
+            answerDiv.remove();
+            
+            // Actualizar los valores de los inputs radio para mantener la coherencia
+            const answersContainer = document.getElementById('edit-answers-container');
+            Array.from(answersContainer.querySelectorAll('input[type="radio"]')).forEach((radio, index) => {
+                radio.value = index;
+            });
+        }
+
+        // Inicialización después de cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Añadir una respuesta inicial al cargar el formulario
+            const existingInit = initMap;
+            initMap = function() {
+                existingInit();
+                addAnswer(); // Añadir respuesta inicial
+            };
+        });
+
+        function setupIconSelection() {
+            // Para el formulario principal
+            document.querySelectorAll('.icon-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // Obtener el contenedor padre
+                    const container = this.closest('.icon-selector, .edit-icon-selector');
+                    if (!container) return;
+                    
+                    // Quitar selección de todos los iconos en este contenedor
+                    container.querySelectorAll('.icon-option').forEach(opt => {
+                        opt.classList.remove('selected', 'bg-blue-100');
+                    });
+                    
+                    // Añadir selección a este icono
+                    this.classList.add('selected', 'bg-blue-100');
+                    
+                    // Actualizar el input correspondiente
+                    const isEdit = container.classList.contains('edit-icon-selector');
+                    const inputId = isEdit ? 'edit-icon' : 'icon';
+                    document.getElementById(inputId).value = this.dataset.value;
+                    
+                    console.log(`Icono ${isEdit ? 'de edición ' : ''}seleccionado:`, this.dataset.value);
+                });
+            });
+        }
+
+        // Modificar openEditModal para ejecutar setupIconSelection después de cargar los datos
+        const originalOpenEditModal = openEditModal;
+        openEditModal = function(id) {
+            originalOpenEditModal(id);
+            setTimeout(setupIconSelection, 100); // Dar tiempo para que se actualice el DOM
+        };
+
+        // Añade esta función para abrir el modal de edición de checkpoint
         function openEditCheckpointModal(id) {
             console.log("Abriendo modal para editar checkpoint:", id);
             
-            // Primero, cargar los datos actuales de lugares y gimcanas para los selectores
+            // Cargar los datos necesarios
             Promise.all([
                 fetch('/places').then(res => res.json()),
                 fetch('/gimcanas').then(res => res.json()),
@@ -1415,10 +1558,39 @@
                 document.getElementById('edit-checkpoint-challenge').value = checkpoint.challenge;
                 document.getElementById('edit-checkpoint-clue').value = checkpoint.clue;
                 document.getElementById('edit-checkpoint-order').value = checkpoint.order;
-                
-                // Establecer los valores seleccionados después de cargar las opciones
                 document.getElementById('edit-checkpoint-place').value = checkpoint.place_id;
                 document.getElementById('edit-checkpoint-gimcana').value = checkpoint.gimcana_id;
+                
+                // Cargar las respuestas existentes
+                const answersContainer = document.getElementById('edit-answers-container');
+                answersContainer.innerHTML = '';
+                
+                // Si hay respuestas, cargarlas
+                if (checkpoint.answers && checkpoint.answers.length > 0) {
+                    checkpoint.answers.forEach((answer, index) => {
+                        const answerDiv = document.createElement('div');
+                        answerDiv.className = 'flex items-center space-x-2 bg-gray-50 p-2 rounded';
+                        
+                        const isCorrect = index === checkpoint.correct_answer;
+                        
+                        answerDiv.innerHTML = `
+                            <input type="radio" name="edit_correct_answer" value="${index}" 
+                                class="mr-2" ${isCorrect ? 'checked' : ''}>
+                            <input type="text" name="edit_answers[]" value="${answer}" 
+                                class="flex-grow px-3 py-2 border rounded-lg" placeholder="Respuesta" required>
+                            <button type="button" class="text-red-500 hover:text-red-700" onclick="removeEditAnswer(this)">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        `;
+                        
+                        answersContainer.appendChild(answerDiv);
+                    });
+                } else {
+                    // Si no hay respuestas, crear al menos una por defecto
+                    addEditAnswer();
+                }
                 
                 // Mostrar el modal
                 document.getElementById('editCheckpointModal').classList.remove('hidden');
@@ -1433,125 +1605,116 @@
             });
         }
 
-        // Función para cerrar el modal de edición de checkpoints
+        // Función para cerrar el modal de edición de checkpoint
         function closeEditCheckpointModal() {
             document.getElementById('editCheckpointModal').classList.add('hidden');
         }
 
-        // Agregar a las funciones de setup al final del archivo
-        document.getElementById('editCheckpointForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // Modificar el event listener del formulario de edición de checkpoint
+        document.addEventListener('DOMContentLoaded', function() {
+            // Código existente...
             
-            const checkpointId = document.getElementById('edit-checkpoint-id').value;
-            const placeId = document.getElementById('edit-checkpoint-place').value;
-            const gimcanaId = document.getElementById('edit-checkpoint-gimcana').value;
-            const challenge = document.getElementById('edit-checkpoint-challenge').value;
-            const clue = document.getElementById('edit-checkpoint-clue').value;
-            const order = document.getElementById('edit-checkpoint-order').value;
-            
-            // Validar que todos los campos estén completos
-            if (!placeId || !gimcanaId || !challenge || !clue || !order) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Campos incompletos',
-                    text: 'Por favor completa todos los campos'
-                });
-                return;
-            }
-            
-            // Preparar los datos para el envío
-            const data = {
-                place_id: placeId,
-                gimcana_id: gimcanaId,
-                challenge: challenge,
-                clue: clue,
-                order: parseInt(order)
-            };
-            
-            console.log("Enviando datos al servidor:", data);
-            
-            // Hacer la petición al servidor usando AJAX
-            fetch(`/api/checkpoints/${checkpointId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(response => {
-                console.log("Respuesta recibida:", response.status);
+            // Añadir listener para el formulario de edición de checkpoint
+            document.getElementById('editCheckpointForm').addEventListener('submit', function(e) {
+                e.preventDefault();
                 
-                // Manejar respuesta no exitosa
-                if (!response.ok) {
-                    if (response.headers.get('content-type')?.includes('application/json')) {
-                        return response.json().then(errData => {
-                            throw new Error(errData.error || 'Error al actualizar el punto de control');
-                        });
-                    } else {
-                        // Si no es JSON, mostrar mensaje genérico
-                        throw new Error(`Error del servidor: ${response.status}`);
-                    }
+                const checkpointId = document.getElementById('edit-checkpoint-id').value;
+                const placeId = document.getElementById('edit-checkpoint-place').value;
+                const gimcanaId = document.getElementById('edit-checkpoint-gimcana').value;
+                const challenge = document.getElementById('edit-checkpoint-challenge').value;
+                const clue = document.getElementById('edit-checkpoint-clue').value;
+                const order = document.getElementById('edit-checkpoint-order').value;
+                
+                // Obtener las respuestas editadas
+                const answers = Array.from(document.querySelectorAll('#edit-answers-container input[name="edit_answers[]"]'))
+                    .map(input => input.value);
+                
+                // Obtener la respuesta correcta editada
+                const correctAnswerRadio = document.querySelector('input[name="edit_correct_answer"]:checked');
+                const correctAnswer = correctAnswerRadio ? parseInt(correctAnswerRadio.value) : 0;
+                
+                // Validaciones
+                if (answers.length === 0) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Respuestas incompletas',
+                        text: 'Añade al menos una respuesta al reto'
+                    });
+                    return;
                 }
                 
-                return response.json();
-            })
-            .then(data => {
-                console.log("Checkpoint actualizado:", data);
+                if (!placeId || !gimcanaId || !challenge || !clue || !order) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Campos incompletos',
+                        text: 'Por favor completa todos los campos'
+                    });
+                    return;
+                }
                 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Éxito',
-                    text: 'Punto de control actualizado correctamente'
-                });
+                // Preparar los datos para el envío
+                const data = {
+                    place_id: placeId,
+                    gimcana_id: gimcanaId,
+                    challenge: challenge,
+                    clue: clue,
+                    order: parseInt(order),
+                    answers: answers,
+                    correct_answer: correctAnswer
+                };
                 
-                closeEditCheckpointModal();
-                loadCheckpoints(); // Recargar la lista de checkpoints
-            })
-            .catch(error => {
-                console.error("Error actualizando checkpoint:", error);
+                console.log("Enviando datos al servidor:", data);
                 
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error al actualizar el punto de control',
-                    text: error.message
+                // Hacer la petición al servidor usando AJAX
+                fetch(`/api/checkpoints/${checkpointId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    console.log("Respuesta recibida:", response.status);
+                    
+                    // Manejar respuesta no exitosa
+                    if (!response.ok) {
+                        if (response.headers.get('content-type')?.includes('application/json')) {
+                            return response.json().then(errData => {
+                                throw new Error(errData.error || 'Error al actualizar el punto de control');
+                            });
+                        } else {
+                            // Si no es JSON, mostrar mensaje genérico
+                            throw new Error(`Error del servidor: ${response.status}`);
+                        }
+                    }
+                    
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Checkpoint actualizado:", data);
+                    
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: 'Punto de control actualizado correctamente'
+                    });
+                    
+                    closeEditCheckpointModal();
+                    loadCheckpoints(); // Recargar la lista de checkpoints
+                })
+                .catch(error => {
+                    console.error("Error actualizando checkpoint:", error);
+                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al actualizar el punto de control',
+                        text: error.message
+                    });
                 });
             });
         });
-
-        function setupIconSelection() {
-            // Para el formulario principal
-            document.querySelectorAll('.icon-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    // Obtener el contenedor padre
-                    const container = this.closest('.icon-selector, .edit-icon-selector');
-                    if (!container) return;
-                    
-                    // Quitar selección de todos los iconos en este contenedor
-                    container.querySelectorAll('.icon-option').forEach(opt => {
-                        opt.classList.remove('selected', 'bg-blue-100');
-                    });
-                    
-                    // Añadir selección a este icono
-                    this.classList.add('selected', 'bg-blue-100');
-                    
-                    // Actualizar el input correspondiente
-                    const isEdit = container.classList.contains('edit-icon-selector');
-                    const inputId = isEdit ? 'edit-icon' : 'icon';
-                    document.getElementById(inputId).value = this.dataset.value;
-                    
-                    console.log(`Icono ${isEdit ? 'de edición ' : ''}seleccionado:`, this.dataset.value);
-                });
-            });
-        }
-
-        // Modificar openEditModal para ejecutar setupIconSelection después de cargar los datos
-        const originalOpenEditModal = openEditModal;
-        openEditModal = function(id) {
-            originalOpenEditModal(id);
-            setTimeout(setupIconSelection, 100); // Dar tiempo para que se actualice el DOM
-        };
     </script>
 </body>
 </html>
