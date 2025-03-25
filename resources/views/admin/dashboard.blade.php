@@ -31,149 +31,130 @@
             border-color: #10b981;
             background-color: #f0fdf4;
         }
-        .tag-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin: 1rem 0;
-        }
-        
-        .tag {
+        .chip {
+            display: inline-flex;
+            align-items: center;
             padding: 0.25rem 0.75rem;
-            background-color: #e5e7eb;
+            background-color: #3b82f6;
+            color: white;
             border-radius: 9999px;
             font-size: 0.875rem;
             cursor: pointer;
-            transition: all 0.2s;
         }
-        
-        .tag.selected {
-            background-color: #3b82f6;
-            color: white;
-        }
-        
-        .tag:hover {
-            background-color: #d1d5db;
-        }
-        
-        .tag.selected:hover {
+        .chip:hover {
             background-color: #2563eb;
         }
-        
-        .new-tag-form {
-            display: flex;
-            gap: 0.5rem;
-            margin: 1rem 0;
+        .chip-remove {
+            margin-left: 0.5rem;
+            cursor: pointer;
         }
-        
-        .new-tag-form input {
-            flex: 1;
-            padding: 0.5rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.375rem;
+        #tags-dropdown {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .tag-option {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+        .tag-option:hover {
+            background-color: #f3f4f6;
         }
     </style>
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold mb-6">Panel de Administrador</h1>
-
+        
         <!-- Pestañas -->
         <div class="mb-6">
             <div class="border-b border-gray-200">
-                <div class="flex justify-between">
-                    <div class="flex">
-                        <button onclick="showTab('places')" class="tab-btn py-4 px-6 border-b-2 font-medium border-blue-500 text-blue-600" data-tab="places">
-                            Lugares
-                        </button>
-                        <button onclick="showTab('tags')" class="tab-btn py-4 px-6 border-b-2 font-medium" data-tab="tags">
-                            Etiquetas
-                        </button>
-                    </div>
-                    <div class="flex">
-                        <button onclick="showTab('gimcanas')" class="tab-btn py-4 px-6 border-b-2 font-medium" data-tab="gimcanas">
-                            Gimcanas
-                        </button>
-                        <button onclick="showTab('checkpoints')" class="tab-btn py-4 px-6 border-b-2 font-medium" data-tab="checkpoints">
-                            Puntos de Control
-                        </button>
-                    </div>
-                </div>
+                <nav class="-mb-px flex">
+                    <button onclick="showTab('places')" class="tab-btn py-4 px-6 border-b-2 font-medium" data-tab="places">
+                        Lugares
+                    </button>
+                    <button onclick="showTab('gimcanas')" class="tab-btn py-4 px-6 border-b-2 font-medium" data-tab="gimcanas">
+                        Gimcanas
+                    </button>
+                    <button onclick="showTab('checkpoints')" class="tab-btn py-4 px-6 border-b-2 font-medium" data-tab="checkpoints">
+                        Puntos de Control
+                    </button>
+                </nav>
             </div>
         </div>
 
         <!-- Contenido de Lugares -->
         <div id="places-tab" class="tab-content">
-            <h2 class="text-2xl font-bold mb-4">Gestión de Lugares</h2>
-            
-            <!-- Selector de etiquetas existentes -->
-            <div class="mb-4">
-                <h3 class="text-lg font-semibold mb-2">Filtrar por etiquetas</h3>
-                <div id="tag-container" class="tag-container"></div>
-            </div>
-            
-            <!-- Formulario de lugares -->
-            <form id="place-form" class="mb-8 bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-xl font-bold mb-4">Añadir Nuevo Lugar</h3>
-                <div class="mb-4">
-                    <label for="name" class="block text-gray-700">Nombre</label>
-                    <input type="text" id="name" name="name" class="w-full px-4 py-2 border rounded-lg" required>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Formulario de lugares -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-xl font-bold mb-4">Añadir Nuevo Lugar</h2>
+                    <form id="placeForm">
+                        <div class="mb-4">
+                            <label for="name" class="block text-gray-700">Nombre</label>
+                            <input type="text" id="name" name="name" class="w-full px-4 py-2 border rounded-lg" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="address" class="block text-gray-700">Dirección</label>
+                            <input type="text" id="address" name="address" class="w-full px-4 py-2 border rounded-lg" required>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label for="latitude" class="block text-gray-700">Latitud</label>
+                                <input type="number" step="any" id="latitude" name="latitude" class="w-full px-4 py-2 border rounded-lg" required>
+                            </div>
+                            <div>
+                                <label for="longitude" class="block text-gray-700">Longitud</label>
+                                <input type="number" step="any" id="longitude" name="longitude" class="w-full px-4 py-2 border rounded-lg" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="icon" class="block text-gray-700">Icono</label>
+                            <input type="hidden" id="icon" name="icon" value="default-marker">
+                            <div class="icon-selector mt-2 flex flex-wrap gap-2">
+                                <div class="icon-option cursor-pointer p-2 border rounded selected" data-value="default-marker">
+                                    <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" alt="Predeterminado" class="w-6 h-auto">
+                                    <span class="text-xs block text-center mt-1">Predeterminado</span>
+                                </div>
+                                <div class="icon-option cursor-pointer p-2 border rounded" data-value="museum-marker">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" alt="Museo" class="w-6 h-auto">
+                                    <span class="text-xs block text-center mt-1">Museo</span>
+                                </div>
+                                <div class="icon-option cursor-pointer p-2 border rounded" data-value="monument-marker">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" alt="Monumento" class="w-6 h-auto">
+                                    <span class="text-xs block text-center mt-1">Monumento</span>
+                                </div>
+                                <div class="icon-option cursor-pointer p-2 border rounded" data-value="restaurant-marker">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" alt="Restaurante" class="w-6 h-auto">
+                                    <span class="text-xs block text-center mt-1">Restaurante</span>
+                                </div>
+                                <div class="icon-option cursor-pointer p-2 border rounded" data-value="park-marker">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png" alt="Parque" class="w-6 h-auto">
+                                    <span class="text-xs block text-center mt-1">Parque</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="tags" class="block text-gray-700">Tags</label>
+                            <div id="tags-container" class="flex flex-wrap gap-2 mb-2">
+                                <!-- Los tags seleccionados aparecerán aquí como "chips" -->
+                            </div>
+                            <div class="relative">
+                                <input type="text" id="tags-input" class="w-full px-4 py-2 border rounded-lg" placeholder="Añadir tags...">
+                                <div id="tags-dropdown" class="absolute z-10 w-full bg-white border border-gray-300 rounded-lg mt-1 hidden">
+                                    <!-- Las opciones de tags aparecerán aquí -->
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                            Guardar Lugar
+                        </button>
+                    </form>
                 </div>
-                <div class="mb-4">
-                    <label for="address" class="block text-gray-700">Dirección</label>
-                    <input type="text" id="address" name="address" class="w-full px-4 py-2 border rounded-lg" required>
-                </div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label for="latitude" class="block text-gray-700">Latitud</label>
-                        <input type="number" step="any" id="latitude" name="latitude" class="w-full px-4 py-2 border rounded-lg" required>
-                    </div>
-                    <div>
-                        <label for="longitude" class="block text-gray-700">Longitud</label>
-                        <input type="number" step="any" id="longitude" name="longitude" class="w-full px-4 py-2 border rounded-lg" required>
-                    </div>
-                </div>
-                <div class="mb-4">
-                    <label for="icon" class="block text-gray-700">Icono (opcional)</label>
-                    <input type="text" id="icon" name="icon" class="w-full px-4 py-2 border rounded-lg">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 mb-2">Etiquetas del lugar</label>
-                    <div id="place-tags-container" class="tag-container"></div>
-                </div>
-                <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                    Guardar Lugar
-                </button>
-            </form>
-            
-            <!-- Lista de lugares -->
-            <div id="places-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <!-- Los lugares se cargarán dinámicamente aquí -->
-            </div>
-        </div>
 
-        <!-- Contenido de Etiquetas -->
-        <div id="tags-tab" class="tab-content hidden">
-            <h2 class="text-2xl font-bold mb-4">Gestión de Etiquetas</h2>
-            
-            <!-- Formulario para crear etiquetas -->
-            <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
-                <h3 class="text-xl font-bold mb-4">Crear Nueva Etiqueta</h3>
-                <div class="flex gap-4">
-                    <input type="text" id="new-tag-input" placeholder="Nombre de la etiqueta..." 
-                           class="flex-1 px-4 py-2 border rounded-lg">
-                    <button onclick="createNewTag()" 
-                            class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
-                        Crear Etiqueta
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Lista de etiquetas -->
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h3 class="text-xl font-bold mb-4">Etiquetas Existentes</h3>
-                <div id="tags-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Las etiquetas se cargarán dinámicamente aquí -->
+                <!-- Lista de lugares -->
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-xl font-bold mb-4">Lugares Guardados</h2>
+                    <div id="placesList" class="space-y-4"></div>
                 </div>
             </div>
         </div>
@@ -200,16 +181,6 @@
                         <div class="mb-4">
                             <label for="gimcana-max-users-per-group" class="block text-gray-700">Número máximo de usuarios por grupo</label>
                             <input type="number" id="gimcana-max-users-per-group" name="max_users_per_group" class="w-full px-4 py-2 border rounded-lg" min="1" required>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label for="gimcana-max-groups" class="block text-gray-700">Máximo de grupos</label>
-                                <input type="number" id="gimcana-max-groups" name="max_groups" min="1" class="w-full px-4 py-2 border rounded-lg" required>
-                            </div>
-                            <div>
-                                <label for="gimcana-max-users" class="block text-gray-700">Máximo de usuarios por grupo</label>
-                                <input type="number" id="gimcana-max-users" name="max_users_per_group" min="1" class="w-full px-4 py-2 border rounded-lg" required>
-                            </div>
                         </div>
                         <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
                             Guardar Gimcana
@@ -258,17 +229,17 @@
                             <label for="cp-order" class="block text-gray-700">Orden</label>
                             <input type="number" id="cp-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
                         </div>
-                        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
-                            Guardar Punto de Control
+                        <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                            Añadir Punto de Control
                         </button>
                     </form>
                 </div>
 
-                <!-- Lista de puntos de control -->
+                <!-- Lista de checkpoints -->
                 <div class="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 class="text-xl font-bold mb-4">Puntos de Control</h2>
+                    <h2 class="text-xl font-bold mb-4">Puntos de Control Guardados</h2>
                     <div id="checkpointsList" class="space-y-4">
-                        <!-- Los puntos de control se cargarán dinámicamente aquí -->
+                        <!-- Los checkpoints se cargarán aquí dinámicamente -->
                     </div>
                 </div>
             </div>
@@ -305,7 +276,29 @@
                     </div>
                     <div class="mb-4">
                         <label for="edit-icon" class="block text-gray-700">Icono</label>
-                        <input type="text" id="edit-icon" name="icon" class="w-full px-4 py-2 border rounded-lg" required>
+                        <input type="hidden" id="edit-icon" name="icon" value="default-marker">
+                        <div class="edit-icon-selector mt-2 flex flex-wrap gap-2">
+                            <div class="icon-option cursor-pointer p-2 border rounded selected" data-value="default-marker">
+                                <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" alt="Predeterminado" class="w-6 h-auto">
+                                <span class="text-xs block text-center mt-1">Predeterminado</span>
+                            </div>
+                            <div class="icon-option cursor-pointer p-2 border rounded" data-value="museum-marker">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" alt="Museo" class="w-6 h-auto">
+                                <span class="text-xs block text-center mt-1">Museo</span>
+                            </div>
+                            <div class="icon-option cursor-pointer p-2 border rounded" data-value="monument-marker">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" alt="Monumento" class="w-6 h-auto">
+                                <span class="text-xs block text-center mt-1">Monumento</span>
+                            </div>
+                            <div class="icon-option cursor-pointer p-2 border rounded" data-value="restaurant-marker">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" alt="Restaurante" class="w-6 h-auto">
+                                <span class="text-xs block text-center mt-1">Restaurante</span>
+                            </div>
+                            <div class="icon-option cursor-pointer p-2 border rounded" data-value="park-marker">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png" alt="Parque" class="w-6 h-auto">
+                                <span class="text-xs block text-center mt-1">Parque</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700">Tags</label>
@@ -355,27 +348,1160 @@
                 </form>
             </div>
         </div>
+
+        <!-- Modal para editar Checkpoint -->
+        <div id="editCheckpointModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 hidden">
+            <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+                <h2 class="text-xl font-bold mb-4">Editar Punto de Control</h2>
+                <form id="editCheckpointForm">
+                    <input type="hidden" id="edit-checkpoint-id" name="id">
+                    <div class="mb-4">
+                        <label for="edit-checkpoint-place" class="block text-gray-700">Lugar</label>
+                        <select id="edit-checkpoint-place" name="place_id" class="w-full px-4 py-2 border rounded-lg" required>
+                            <option value="">Selecciona un lugar</option>
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-checkpoint-gimcana" class="block text-gray-700">Gimcana</label>
+                        <select id="edit-checkpoint-gimcana" name="gimcana_id" class="w-full px-4 py-2 border rounded-lg" required>
+                            <option value="">Selecciona una gimcana</option>
+                            <!-- Se llenará dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-checkpoint-challenge" class="block text-gray-700">Reto</label>
+                        <textarea id="edit-checkpoint-challenge" name="challenge" rows="3" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-checkpoint-clue" class="block text-gray-700">Pista</label>
+                        <textarea id="edit-checkpoint-clue" name="clue" rows="2" class="w-full px-4 py-2 border rounded-lg" required></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label for="edit-checkpoint-order" class="block text-gray-700">Orden</label>
+                        <input type="number" id="edit-checkpoint-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button type="button" onclick="closeEditCheckpointModal()" class="bg-gray-300 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-400">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
+                            Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="{{ asset('js/dashboard.js') }}"></script>
     <script>
-        // Función para crear nueva etiqueta
-        function createNewTag() {
-            const input = document.getElementById('new-tag-input');
-            const name = input.value.trim();
+        let map;
+        let currentMarker = null;
+        let markers = [];
+        let activeTab = 'places';
+
+        // Inicializar mapa
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            loadPlaces();
+            loadGimcanas();
+            loadCheckpoints();
+            setupForms();
+            showTab('places');
+            setupIconSelection();
+            console.log("Configuración de iconos inicializada");
+        });
+
+        function initMap() {
+            map = L.map('map').setView([41.3851, 2.1734], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: ' OpenStreetMap contributors'
+            }).addTo(map);
+
+            map.on('click', function(e) {
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+
+                if (currentMarker) {
+                    map.removeLayer(currentMarker);
+                }
+                currentMarker = L.marker([lat, lng]).addTo(map);
+
+                // Actualizar campos según la pestaña activa
+                if (activeTab === 'places') {
+                    document.getElementById('latitude').value = lat;
+                    document.getElementById('longitude').value = lng;
+                }
+            });
+        }
+
+        function showTab(tabName) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
             
-            if (name) {
-                createTag(name).then(newTag => {
-                    if (newTag) {
-                        input.value = '';
-                        showSuccess('Etiqueta creada exitosamente');
+            // Mostrar la pestaña seleccionada
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+            
+            // Actualizar pestaña activa
+            activeTab = tabName;
+            
+            // Cargar datos específicos para cada pestaña
+            if (tabName === 'gimcanas') {
+                console.log("Pestaña de gimcanas seleccionada, cargando datos...");
+                loadGimcanas();
+            } else if (tabName === 'checkpoints') {
+                loadGimcanas();  // Recargar gimcanas para actualizar el selector
+                loadPlaces();    // También recargar lugares
+                loadCheckpoints();
+            } else if (tabName === 'places') {
+                loadPlaces();
+            }
+            
+            // Actualizar botones de navegación
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                if (btn.dataset.tab === tabName) {
+                    btn.classList.add('border-blue-500', 'text-blue-600');
+                }
+            });
+        }
+
+        function setupForms() {
+            // Formulario de lugares
+            document.getElementById('placeForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                
+                // Convertir los valores de latitud y longitud a decimal
+                formData.set('latitude', parseFloat(formData.get('latitude')).toFixed(8));
+                formData.set('longitude', parseFloat(formData.get('longitude')).toFixed(8));
+
+                // Obtener los tags seleccionados
+                const tags = Array.from(document.querySelectorAll('#tags-container .chip')).map(chip => parseInt(chip.dataset.id));
+
+                // Crear objeto con los datos del formulario
+                const data = {
+                    name: formData.get('name'),
+                    address: formData.get('address'),
+                    latitude: formData.get('latitude'),
+                    longitude: formData.get('longitude'),
+                    icon: formData.get('icon'),
+                    tags: tags
+                };
+
+                fetch('/api/places', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Error ${response.status}: ${text}`);
+                        });
                     }
+                    return response.json();
+                })
+                .then(data => {
+                    Swal.fire(
+                        '¡Éxito!',
+                        'El lugar ha sido añadido correctamente.',
+                        'success'
+                    );
+                    loadPlaces();
+                    document.getElementById('placeForm').reset();
+                    document.getElementById('tags-container').innerHTML = '';
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al añadir el lugar',
+                        text: error.message
+                    });
                 });
-            } else {
-                showError('El nombre de la etiqueta no puede estar vacío');
+            });
+
+            // Formulario de gimcanas
+            document.getElementById('gimcanaForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+
+                const data = {
+                    name: formData.get('name'),
+                    description: formData.get('description'),
+                    max_groups: parseInt(formData.get('max_groups')),
+                    max_users_per_group: parseInt(formData.get('max_users_per_group'))
+                };
+
+                fetch('/gimcanas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Error ${response.status}: ${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    Swal.fire(
+                        '¡Éxito!',
+                        'La gimcana ha sido añadida correctamente.',
+                        'success'
+                    );
+                    loadGimcanas();
+                    document.getElementById('gimcanaForm').reset();
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al añadir la gimcana',
+                        text: error.message
+                    });
+                });
+            });
+
+            document.getElementById('tags-input').addEventListener('focus', () => {
+                document.getElementById('tags-dropdown').classList.remove('hidden');
+                loadTags();
+            });
+
+            document.getElementById('tags-input').addEventListener('blur', () => {
+                setTimeout(() => {
+                    document.getElementById('tags-dropdown').classList.add('hidden');
+                }, 200);
+            });
+
+            // Añadir esta función para el formulario de checkpoints
+            const checkpointForm = document.getElementById('checkpointForm');
+            if (checkpointForm) {
+                checkpointForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const placeId = document.getElementById('cp-place').value;
+                    const gimcanaId = document.getElementById('cp-gimcana').value;
+                    const challenge = document.getElementById('cp-challenge').value;
+                    const clue = document.getElementById('cp-clue').value;
+                    const order = document.getElementById('cp-order').value;
+                    
+                    // Validar que todos los campos obligatorios estén completos
+                    if (!placeId || !gimcanaId || !challenge || !clue || !order) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Campos incompletos',
+                            text: 'Por favor completa todos los campos'
+                        });
+                        return;
+                    }
+                    
+                    // Datos para enviar
+                    const formData = {
+                        place_id: placeId,
+                        gimcana_id: gimcanaId,
+                        challenge: challenge,
+                        clue: clue,
+                        order: order
+                    };
+                    
+                    // Enviar datos mediante fetch API
+                    fetch('/api/checkpoints', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(data => {
+                                throw new Error(data.error || 'Error al guardar el punto de control');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Limpiar el formulario pero mantener los selects
+                        document.getElementById('cp-challenge').value = '';
+                        document.getElementById('cp-clue').value = '';
+                        document.getElementById('cp-order').value = '';
+                        
+                        // Mostrar mensaje de éxito y recargar los checkpoints
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Éxito!',
+                            text: 'Punto de control añadido correctamente'
+                        });
+                        
+                        // Recargar los checkpoints
+                        loadCheckpoints();
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: error.message
+                        });
+                    });
+                });
             }
         }
+
+        function loadPlaces() {
+            // Definir iconos personalizados para el mapa
+            const markerIcons = {
+                'default-marker': L.icon({
+                    iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                }),
+                'museum-marker': L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                }),
+                'monument-marker': L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                }),
+                'restaurant-marker': L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                }),
+                'park-marker': L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                    shadowSize: [41, 41]
+                })
+            };
+
+            // Limpiar marcadores existentes
+            if (map && markers) {
+                markers.forEach(marker => map.removeLayer(marker));
+                markers = [];
+            }
+            
+            return fetch('/places', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al cargar los lugares');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Asignar a la variable global
+                places = data;
+                console.log("Lugares cargados:", places.length);
+                
+                // Actualizar la lista de lugares
+                const placesList = document.getElementById('placesList');
+                if (placesList) {
+                    placesList.innerHTML = '';
+                    
+                    places.forEach(place => {
+                        // Añadir a la lista
+                        const placeElement = document.createElement('div');
+                        placeElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
+                        placeElement.innerHTML = `
+                            <h3 class="font-bold">${place.name}</h3>
+                            <p class="text-gray-600">${place.address}</p>
+                            <p class="text-sm text-gray-500">Lat: ${place.latitude}, Lng: ${place.longitude}</p>
+                            <div class="mt-2">
+                                <button onclick="openEditModal(${place.id})" class="text-blue-500 hover:text-blue-700 ml-2">Editar</button>
+                                <button onclick="deletePlace(${place.id})" class="text-red-500 hover:text-red-700">Eliminar</button>
+                            </div>
+                        `;
+                        placesList.appendChild(placeElement);
+                    });
+                }
+                
+                // Actualizar el select de lugares
+                const placeSelect = document.getElementById('cp-place');
+                if (placeSelect) {
+                    placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
+                    
+                    places.forEach(place => {
+                        const option = document.createElement('option');
+                        option.value = place.id;
+                        option.textContent = place.name;
+                        placeSelect.appendChild(option);
+                    });
+                }
+                
+                // Añadir marcadores al mapa
+                if (map) {
+                    places.forEach(place => {
+                        // Crear icono basado en el valor guardado
+                        let iconUrl;
+                        switch(place.icon) {
+                            case 'default-marker':
+                                iconUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png';
+                                break;
+                            case 'museum-marker':
+                                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png';
+                                break;
+                            case 'monument-marker':
+                                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png';
+                                break;
+                            case 'restaurant-marker':
+                                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png';
+                                break;
+                            case 'park-marker':
+                                iconUrl = 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png';
+                                break;
+                            default:
+                                iconUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png';
+                        }
+                        
+                        const icon = L.icon({
+                            iconUrl: iconUrl,
+                            iconSize: [25, 41],
+                            iconAnchor: [12, 41],
+                            popupAnchor: [1, -34],
+                            shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+                            shadowSize: [41, 41]
+                        });
+                        
+                        const marker = L.marker([place.latitude, place.longitude], { icon: icon })
+                            .addTo(map)
+                            .bindPopup(`<b>${place.name}</b><br>${place.address}`);
+                        markers.push(marker);
+                    });
+                }
+                
+                return places;
+            });
+        }
+
+        function addTag(id, name, formType) {
+            const container = formType === 'edit' ? document.getElementById('edit-tags-container') : document.getElementById('tags-container');
+            const chip = document.createElement('div');
+            chip.className = 'chip';
+            chip.innerHTML = `
+                ${name}
+                <span class="chip-remove" onclick="removeTag(${id}, '${formType}')">×</span>
+            `;
+            chip.dataset.id = id;
+            container.appendChild(chip);
+        }
+
+        function removeTag(id, formType) {
+            const container = formType === 'edit' ? document.getElementById('edit-tags-container') : document.getElementById('tags-container');
+            const chip = container.querySelector(`.chip[data-id="${id}"]`);
+            if (chip) {
+                chip.remove();
+            }
+        }
+
+        function loadTags() {
+            fetch('/api/tags')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar los tags');
+                    }
+                    return response.json();
+                })
+                .then(tags => {
+                    const tagsDropdown = document.getElementById('tags-dropdown');
+                    tagsDropdown.innerHTML = '';
+
+                    tags.forEach(tag => {
+                        const option = document.createElement('div');
+                        option.className = 'tag-option';
+                        option.textContent = tag.name;
+                        option.dataset.id = tag.id;
+                        option.addEventListener('click', () => addTag(tag.id, tag.name, 'add'));
+                        tagsDropdown.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar los tags');
+                });
+        }
+
+        function loadGimcanas() {
+            console.log("Cargando gimcanas...");
+            fetch('/gimcanas')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar las gimcanas');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Guardar en variable global
+                    window.gimcanas = data;
+                    
+                    // Actualizar la lista de gimcanas
+                    const gimcanasList = document.getElementById('gimcanasList');
+                    if (gimcanasList) {
+                        gimcanasList.innerHTML = '';
+                        
+                        if (data.length === 0) {
+                            gimcanasList.innerHTML = '<p class="text-gray-500">No hay gimcanas registradas</p>';
+                            return;
+                        }
+                        
+                        data.forEach(gimcana => {
+                            const gimcanaElement = document.createElement('div');
+                            gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
+                            gimcanaElement.innerHTML = `
+                                <h3 class="font-bold">${gimcana.name}</h3>
+                                <p class="text-gray-600">${gimcana.description || 'Sin descripción'}</p>
+                                <p class="text-sm text-gray-500">Grupos: ${gimcana.max_groups}, Usuarios por grupo: ${gimcana.max_users_per_group}</p>
+                                <div class="mt-2">
+                                    <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700 mr-2">
+                                        Eliminar
+                                    </button>
+                                    <button onclick="openEditGimcanaModal(${gimcana.id})" class="text-blue-500 hover:text-blue-700">
+                                        Editar
+                                    </button>
+                                </div>
+                            `;
+                            gimcanasList.appendChild(gimcanaElement);
+                        });
+                    } else {
+                        console.error("Elemento gimcanasList no encontrado");
+                    }
+                    
+                    // Actualizar selector de gimcanas en el formulario de checkpoints
+                    const gimcanaSelect = document.getElementById('cp-gimcana');
+                    if (gimcanaSelect) {
+                        // Guardar la selección actual si existe
+                        const currentSelection = gimcanaSelect.value;
+                        
+                        gimcanaSelect.innerHTML = '<option value="">Selecciona una gimcana</option>';
+                        
+                        data.forEach(gimcana => {
+                            const option = document.createElement('option');
+                            option.value = gimcana.id;
+                            option.textContent = gimcana.name;
+                            gimcanaSelect.appendChild(option);
+                        });
+                        
+                        // Restaurar la selección anterior si es posible
+                        if (currentSelection) {
+                            gimcanaSelect.value = currentSelection;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando gimcanas:', error);
+                    const gimcanasList = document.getElementById('gimcanasList');
+                    if (gimcanasList) {
+                        gimcanasList.innerHTML = '<p class="text-red-500">Error al cargar las gimcanas: ' + error.message + '</p>';
+                    }
+                });
+        }
+
+        function loadCheckpoints() {
+            fetch('/api/checkpoints')
+                .then(response => response.json())
+                .then(checkpoints => {
+                    console.log("Checkpoints cargados:", checkpoints.length);
+                    
+                    const checkpointsList = document.getElementById('checkpointsList');
+                    if (!checkpointsList) {
+                        console.error("No se encontró el elemento checkpointsList");
+                        return;
+                    }
+                    
+                    checkpointsList.innerHTML = '';
+                    
+                    if (checkpoints.length === 0) {
+                        checkpointsList.innerHTML = '<p class="text-gray-500">No hay puntos de control registrados.</p>';
+                        return;
+                    }
+                    
+                    checkpoints.forEach(checkpoint => {
+                        // Usar directamente los datos relacionados de la respuesta
+                        const checkpointElement = document.createElement('div');
+                        checkpointElement.className = 'checkpoint-card p-4 border rounded-lg hover:bg-gray-50';
+                        
+                        const placeName = checkpoint.place ? checkpoint.place.name : 'Lugar no encontrado';
+                        const gimcanaName = checkpoint.gimcana ? checkpoint.gimcana.name : 'Gimcana no encontrada';
+                        
+                        checkpointElement.innerHTML = `
+                            <h3 class="font-bold">${placeName} (Orden: ${checkpoint.order})</h3>
+                            <p class="text-gray-600"><strong>Gimcana:</strong> ${gimcanaName}</p>
+                            <p class="text-gray-600"><strong>Reto:</strong> ${checkpoint.challenge}</p>
+                            <p class="text-gray-500"><strong>Pista:</strong> ${checkpoint.clue}</p>
+                            <div class="mt-2">
+                                <button onclick="deleteCheckpoint(${checkpoint.id})" class="text-red-500 hover:text-red-700">
+                                    Eliminar
+                                </button>
+                                <button onclick="openEditCheckpointModal(${checkpoint.id})" class="text-blue-500 hover:text-blue-700">
+                                    Editar
+                                </button>
+                            </div>
+                        `;
+                        
+                        checkpointsList.appendChild(checkpointElement);
+                        
+                        // Si estamos en la pestaña de checkpoints, añadir marcador si tenemos lugar
+                        if (checkpoint.place && activeTab === 'checkpoints') {
+                            try {
+                                const place = checkpoint.place;
+                                const marker = L.marker([place.latitude, place.longitude])
+                                    .bindPopup(`<b>${place.name}</b><br>Orden: ${checkpoint.order}<br>${checkpoint.clue}`)
+                                    .addTo(map);
+                                markers.push(marker);
+                            } catch (e) {
+                                console.error("Error al añadir marcador:", e);
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error cargando checkpoints:', error);
+                    const checkpointsList = document.getElementById('checkpointsList');
+                    if (checkpointsList) {
+                        checkpointsList.innerHTML = '<p class="text-red-500">Error al cargar los puntos de control.</p>';
+                    }
+                });
+        }
+
+        function clearMarkers() {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+        }
+
+        function deletePlace(id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir esto!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/api/places/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => {
+                                throw new Error(err.error || 'Error al eliminar el lugar');
+                            });
+                        }
+                        // Si la respuesta es 204 (No Content), no intentes parsear JSON
+                        if (response.status === 204) {
+                            return null;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        Swal.fire(
+                            '¡Eliminado!',
+                            'El lugar ha sido eliminado.',
+                            'success'
+                        );
+                        loadPlaces();
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al eliminar el lugar',
+                            text: error.message
+                        });
+                    });
+                }
+            });
+        }
+
+        function deleteGimcana(id) {
+            Swal.fire({
+                title: '¿Estás seguro?',
+                text: "¡No podrás revertir esto!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/gimcanas/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            return response.json().then(err => {
+                                throw new Error(err.error || 'Error al eliminar la gimcana');
+                            });
+                        }
+                        return response.json();
+                    })
+                    .then(() => {
+                        Swal.fire(
+                            '¡Eliminado!',
+                            'La gimcana ha sido eliminada.',
+                            'success'
+                        );
+                        loadGimcanas();
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al eliminar la gimcana',
+                            text: error.message
+                        });
+                    });
+                }
+            });
+        }
+
+        function deleteCheckpoint(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar este punto de control?')) {
+                fetch(`/api/checkpoints/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                })
+                .then(() => loadCheckpoints());
+            }
+        }
+
+        function openEditModal(id) {
+            fetch(`/places/${id}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar el lugar');
+                    }
+                    return response.json();
+                })
+                .then(place => {
+                    document.getElementById('edit-id').value = place.id;
+                    document.getElementById('edit-name').value = place.name;
+                    document.getElementById('edit-address').value = place.address;
+                    document.getElementById('edit-latitude').value = place.latitude;
+                    document.getElementById('edit-longitude').value = place.longitude;
+                    document.getElementById('edit-icon').value = place.icon;
+                    
+                    // Seleccionar visualmente el icono correcto
+                    const editIconSelector = document.querySelector('.edit-icon-selector');
+                    editIconSelector.querySelectorAll('.icon-option').forEach(option => {
+                        option.classList.remove('selected', 'bg-blue-100', 'border-blue-500');
+                        if (option.dataset.value === place.icon) {
+                            option.classList.add('selected', 'bg-blue-100', 'border-blue-500');
+                        }
+                    });
+
+                    // Limpiar los tags seleccionados
+                    const tagsContainer = document.getElementById('edit-tags-container');
+                    tagsContainer.innerHTML = '';
+
+                    // Añadir los tags asociados al lugar
+                    place.tags.forEach(tag => {
+                        const chip = document.createElement('div');
+                        chip.className = 'chip';
+                        chip.innerHTML = `
+                            ${tag.name}
+                            <span class="chip-remove" onclick="removeTag(${tag.id}, 'edit')">×</span>
+                        `;
+                        chip.dataset.id = tag.id;
+                        tagsContainer.appendChild(chip);
+                    });
+
+                    // Cargar todos los tags disponibles
+                    fetch('/api/tags')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Error al cargar los tags');
+                            }
+                            return response.json();
+                        })
+                        .then(tags => {
+                            const tagsDropdown = document.getElementById('edit-tags-dropdown');
+                            tagsDropdown.innerHTML = '';
+
+                            tags.forEach(tag => {
+                                const option = document.createElement('div');
+                                option.className = 'tag-option';
+                                option.textContent = tag.name;
+                                option.dataset.id = tag.id;
+                                option.addEventListener('click', () => addTag(tag.id, tag.name, 'edit'));
+                                tagsDropdown.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Error al cargar los tags');
+                        });
+
+                    document.getElementById('editModal').classList.remove('hidden');
+                    setupIconSelection();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al cargar el lugar');
+                });
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        document.getElementById('editPlaceForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const tags = Array.from(document.querySelectorAll('#edit-tags-container .chip')).map(chip => parseInt(chip.dataset.id));
+
+            const data = {
+                id: formData.get('id'),
+                name: formData.get('name'),
+                address: formData.get('address'),
+                latitude: formData.get('latitude'),
+                longitude: formData.get('longitude'),
+                icon: formData.get('icon'),
+                tags: tags
+            };
+
+            fetch(`/places/${data.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Error al actualizar el lugar');
+                    });
+                }
+                return response.json();
+            })
+            .then(place => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Lugar actualizado con éxito',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                closeEditModal();
+                loadPlaces();
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al actualizar el lugar',
+                    text: error.message
+                });
+            });
+        });
+
+        document.getElementById('edit-tags-input').addEventListener('focus', function() {
+            document.getElementById('edit-tags-dropdown').classList.remove('hidden');
+        });
+
+        document.getElementById('edit-tags-input').addEventListener('blur', function() {
+            setTimeout(() => {
+                document.getElementById('edit-tags-dropdown').classList.add('hidden');
+            }, 200);
+        });
+
+        function openEditGimcanaModal(id) {
+            fetch(`/gimcanas/${id}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error al cargar la gimcana');
+                    }
+                    return response.json();
+                })
+                .then(gimcana => {
+                    document.getElementById('edit-gimcana-id').value = gimcana.id;
+                    document.getElementById('edit-gimcana-name').value = gimcana.name;
+                    document.getElementById('edit-gimcana-description').value = gimcana.description;
+                    document.getElementById('edit-gimcana-max-groups').value = gimcana.max_groups;
+                    document.getElementById('edit-gimcana-max-users-per-group').value = gimcana.max_users_per_group;
+
+                    document.getElementById('editGimcanaModal').classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error al cargar la gimcana',
+                        text: error.message
+                    });
+                });
+        }
+
+        document.getElementById('editGimcanaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            const data = {
+                id: formData.get('id'),
+                name: formData.get('name'),
+                description: formData.get('description'),
+                max_groups: parseInt(formData.get('max_groups')),
+                max_users_per_group: parseInt(formData.get('max_users_per_group'))
+            };
+
+            fetch(`/gimcanas/${data.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.message || 'Error al actualizar la gimcana');
+                    });
+                }
+                return response.json();
+            })
+            .then(gimcana => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Gimcana actualizada con éxito',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                closeEditGimcanaModal();
+                loadGimcanas();
+            })
+            .catch(error => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al actualizar la gimcana',
+                    text: error.message
+                });
+            });
+        });
+
+        function closeEditGimcanaModal() {
+            document.getElementById('editGimcanaModal').classList.add('hidden');
+        }
+
+        // Agregar o modificar la función para abrir el modal de edición de checkpoints
+        function openEditCheckpointModal(id) {
+            console.log("Abriendo modal para editar checkpoint:", id);
+            
+            // Primero, cargar los datos actuales de lugares y gimcanas para los selectores
+            Promise.all([
+                fetch('/places').then(res => res.json()),
+                fetch('/gimcanas').then(res => res.json()),
+                fetch(`/api/checkpoints/${id}`).then(res => res.json())
+            ])
+            .then(([places, gimcanas, checkpoint]) => {
+                console.log("Datos cargados - Lugares:", places.length, "Gimcanas:", gimcanas.length, "Checkpoint:", checkpoint);
+                
+                // Actualizar selector de lugares
+                const placeSelect = document.getElementById('edit-checkpoint-place');
+                placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
+                
+                places.forEach(place => {
+                    const option = document.createElement('option');
+                    option.value = place.id;
+                    option.textContent = place.name;
+                    placeSelect.appendChild(option);
+                });
+                
+                // Actualizar selector de gimcanas
+                const gimcanaSelect = document.getElementById('edit-checkpoint-gimcana');
+                gimcanaSelect.innerHTML = '<option value="">Selecciona una gimcana</option>';
+                
+                gimcanas.forEach(gimcana => {
+                    const option = document.createElement('option');
+                    option.value = gimcana.id;
+                    option.textContent = gimcana.name;
+                    gimcanaSelect.appendChild(option);
+                });
+                
+                // Ahora llenar el formulario con los datos del checkpoint
+                document.getElementById('edit-checkpoint-id').value = checkpoint.id;
+                document.getElementById('edit-checkpoint-challenge').value = checkpoint.challenge;
+                document.getElementById('edit-checkpoint-clue').value = checkpoint.clue;
+                document.getElementById('edit-checkpoint-order').value = checkpoint.order;
+                
+                // Establecer los valores seleccionados después de cargar las opciones
+                document.getElementById('edit-checkpoint-place').value = checkpoint.place_id;
+                document.getElementById('edit-checkpoint-gimcana').value = checkpoint.gimcana_id;
+                
+                // Mostrar el modal
+                document.getElementById('editCheckpointModal').classList.remove('hidden');
+            })
+            .catch(error => {
+                console.error("Error preparando el modal de edición:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo cargar los datos para editar el punto de control'
+                });
+            });
+        }
+
+        // Función para cerrar el modal de edición de checkpoints
+        function closeEditCheckpointModal() {
+            document.getElementById('editCheckpointModal').classList.add('hidden');
+        }
+
+        // Agregar a las funciones de setup al final del archivo
+        document.getElementById('editCheckpointForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const checkpointId = document.getElementById('edit-checkpoint-id').value;
+            const placeId = document.getElementById('edit-checkpoint-place').value;
+            const gimcanaId = document.getElementById('edit-checkpoint-gimcana').value;
+            const challenge = document.getElementById('edit-checkpoint-challenge').value;
+            const clue = document.getElementById('edit-checkpoint-clue').value;
+            const order = document.getElementById('edit-checkpoint-order').value;
+            
+            // Validar que todos los campos estén completos
+            if (!placeId || !gimcanaId || !challenge || !clue || !order) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Campos incompletos',
+                    text: 'Por favor completa todos los campos'
+                });
+                return;
+            }
+            
+            // Preparar los datos para el envío
+            const data = {
+                place_id: placeId,
+                gimcana_id: gimcanaId,
+                challenge: challenge,
+                clue: clue,
+                order: parseInt(order)
+            };
+            
+            console.log("Enviando datos al servidor:", data);
+            
+            // Hacer la petición al servidor usando AJAX
+            fetch(`/api/checkpoints/${checkpointId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                console.log("Respuesta recibida:", response.status);
+                
+                // Manejar respuesta no exitosa
+                if (!response.ok) {
+                    if (response.headers.get('content-type')?.includes('application/json')) {
+                        return response.json().then(errData => {
+                            throw new Error(errData.error || 'Error al actualizar el punto de control');
+                        });
+                    } else {
+                        // Si no es JSON, mostrar mensaje genérico
+                        throw new Error(`Error del servidor: ${response.status}`);
+                    }
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                console.log("Checkpoint actualizado:", data);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Éxito',
+                    text: 'Punto de control actualizado correctamente'
+                });
+                
+                closeEditCheckpointModal();
+                loadCheckpoints(); // Recargar la lista de checkpoints
+            })
+            .catch(error => {
+                console.error("Error actualizando checkpoint:", error);
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al actualizar el punto de control',
+                    text: error.message
+                });
+            });
+        });
+
+        function setupIconSelection() {
+            // Para el formulario principal
+            document.querySelectorAll('.icon-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // Obtener el contenedor padre
+                    const container = this.closest('.icon-selector, .edit-icon-selector');
+                    if (!container) return;
+                    
+                    // Quitar selección de todos los iconos en este contenedor
+                    container.querySelectorAll('.icon-option').forEach(opt => {
+                        opt.classList.remove('selected', 'bg-blue-100');
+                    });
+                    
+                    // Añadir selección a este icono
+                    this.classList.add('selected', 'bg-blue-100');
+                    
+                    // Actualizar el input correspondiente
+                    const isEdit = container.classList.contains('edit-icon-selector');
+                    const inputId = isEdit ? 'edit-icon' : 'icon';
+                    document.getElementById(inputId).value = this.dataset.value;
+                    
+                    console.log(`Icono ${isEdit ? 'de edición ' : ''}seleccionado:`, this.dataset.value);
+                });
+            });
+        }
+
+        // Modificar openEditModal para ejecutar setupIconSelection después de cargar los datos
+        const originalOpenEditModal = openEditModal;
+        openEditModal = function(id) {
+            originalOpenEditModal(id);
+            setTimeout(setupIconSelection, 100); // Dar tiempo para que se actualice el DOM
+        };
     </script>
 </body>
 </html>
