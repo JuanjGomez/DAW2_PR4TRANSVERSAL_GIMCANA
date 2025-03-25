@@ -237,6 +237,48 @@
                             <label for="cp-order" class="block text-gray-700">Orden</label>
                             <input type="number" id="cp-order" name="order" min="1" class="w-full px-4 py-2 border rounded-lg" required>
                         </div>
+                        <div id="answers-container" class="mb-4">
+                            <label class="block text-gray-700">Respuestas</label>
+                            <div id="answer-list">
+                                <!-- Se llenará dinámivar places = [];
+                                var gimcanas = [];
+                                
+                                function addAnswer() {
+                                    const answerList = document.getElementById('answer-list');
+                                    const answerCount = answerList.children.length;
+                                    
+                                    const answerDiv = document.createElement('div');
+                                    answerDiv.className = 'flex items-center mb-2';
+                                    
+                                    answerDiv.innerHTML = `
+                                        <input type="text" name="answers[]" class="w-full px-3 py-2 border rounded-lg" placeholder="Respuesta">
+                                        <input type="radio" name="correct" value="${answerCount}" class="ml-2">
+                                        <button type="button" onclick="removeAnswer(this)" class="ml-2 text-red-500 hover:text-red-700">Eliminar</button>
+                                    `;
+                                    
+                                    answerList.appendChild(answerDiv);
+                                }
+                                
+                                function removeAnswer(button) {
+                                    const answerDiv = button.parentElement;
+                                    answerDiv.remove();
+                                }
+                                
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    // Add a default answer input
+                                    addAnswer();
+                                
+                                    // Initialize the map
+                                    const map = L.map('map').setView([40.4168, -3.7038], 6);
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        attribution: ' OpenStreetMap contributors'
+                                    }).addTo(map);
+                                
+                                    // Other initialization code...
+                                });
+                            </div>
+                            <button type="button" onclick="addAnswer()" class="mt-2 bg-blue-500 text-white py-1 px-3 rounded-lg hover:bg-blue-600">Añadir Respuesta</button>
+                        </div>
                         <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600">
                             Añadir Punto de Control
                         </button>
@@ -413,7 +455,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             loadPlaces();
-            loadGimcanas();
+            // loadGimcanas();
             loadCheckpoints();
             setupForms();
             showTab('places');
