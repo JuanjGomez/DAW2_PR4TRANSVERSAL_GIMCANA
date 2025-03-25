@@ -4,10 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\FavoritePlace;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class FavoritePlaceController extends Controller
 {
+    public function index()
+    {
+        $favoritePlaces = FavoritePlace::where('user_id', Auth::id())
+            ->with('place')
+            ->get()
+            ->map(function ($favorite) {
+                return $favorite->place;
+            });
+
+        return response()->json($favoritePlaces);
+    }
+
     public function store(Request $request)
     {
         try {
@@ -15,27 +28,21 @@ class FavoritePlaceController extends Controller
                 'place_id' => 'required|exists:places,id'
             ]);
 
-            $user = auth()->user();
+            // Verificar si ya existe el favorito
+            $exists = FavoritePlace::where('user_id', Auth::id())
+                ->where('place_id', $request->place_id)
+                ->exists();
 
-            if (!$user) {
-                return response()->json([
-                    'message' => 'Usuario no autenticado'
-                ], 401);
+            if ($exists) {
+                return response()->json(['message' => 'El lugar ya está en favoritos'], 409);
             }
 
-            // Verificar si el lugar ya está en favoritos
-            if ($user->favoritePlaces()->where('place_id', $request->place_id)->exists()) {
-                return response()->json([
-                    'message' => 'Este lugar ya está en tus favoritos'
-                ], 409);
-            }
+            $favorite = FavoritePlace::create([
+                'user_id' => Auth::id(),
+                'place_id' => $request->place_id
+            ]);
 
-            // Añadir a favoritos
-            $user->favoritePlaces()->attach($request->place_id);
-
-            return response()->json([
-                'message' => 'Lugar añadido a favoritos correctamente'
-            ], 201);
+            return response()->json($favorite->place, 201);
 
         } catch (\Exception $e) {
             Log::error('Error al añadir lugar a favoritos: ' . $e->getMessage());
@@ -43,5 +50,19 @@ class FavoritePlaceController extends Controller
                 'message' => 'Error interno del servidor: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function destroy($id)
+    {
+        $favorite = FavoritePlace::where('user_id', Auth::id())
+            ->where('place_id', $id)
+            ->first();
+
+        if (!$favorite) {
+            return response()->json(['message' => 'Lugar favorito no encontrado'], 404);
+        }
+
+        $favorite->delete();
+        return response()->json(['message' => 'Lugar eliminado de favoritos']);
     }
 } 

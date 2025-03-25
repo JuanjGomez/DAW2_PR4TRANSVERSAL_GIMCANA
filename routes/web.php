@@ -44,7 +44,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/group/join', [GroupController::class, 'joinGroup']);
         Route::get('/user/group-status/{gimcanaId}', [GroupController::class, 'checkUserGroupStatus']);
         Route::post('/group/leave', [GroupController::class, 'leaveGroup']);
+        Route::get('/favorite-places', [FavoritePlaceController::class, 'index']);
         Route::post('/favorite-places', [FavoritePlaceController::class, 'store']);
+        Route::delete('/favorite-places/{id}', [FavoritePlaceController::class, 'destroy']);
     });
 
     // Rutas de recursos

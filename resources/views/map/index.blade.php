@@ -144,7 +144,34 @@
             display: none !important;
         }
         #placeDetailsModal {
-            z-index: 10000; /* Asegúrate de que sea mayor que otros elementos */
+            z-index: 10000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            z-index: 10001;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
         }
     </style>
 </head>
@@ -155,6 +182,7 @@
         <div class="map-buttons">
             <button id="lobbiesBtn" class="map-button">Gimcanas</button>
             <button id="filtrosBtn" class="map-button">Filtros</button>
+            <button id="favoritesBtn" class="map-button" onclick="showFavorites()">Favoritos (0)</button>
             <form action="{{ route('logout') }}" method="POST" class="logout-form">
                 @csrf
                 <button type="submit" class="important">
@@ -198,14 +226,29 @@
     </div>
 
     <!-- Modal para detalles del lugar -->
-    <div id="placeDetailsModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center" inert>
-        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+    <div id="placeDetailsModal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
             <h2 id="placeName" class="text-xl font-bold mb-2"></h2>
             <p id="placeAddress" class="text-gray-600 mb-4"></p>
             <p id="placeDescription" class="text-gray-600 mb-4"></p>
             <div class="flex justify-end gap-2">
                 <button id="closePlaceModal" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cerrar</button>
                 <button id="addToFavorites" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Añadir a favoritos</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para lugares favoritos -->
+    <div id="favoritesModal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Mis Lugares Favoritos</h2>
+                <button id="closeFavoritesModal" class="text-gray-500 hover:text-gray-700">&times;</button>
+            </div>
+            <div id="favoritesList" class="space-y-4">
+                <!-- Los lugares favoritos se cargarán dinámicamente aquí -->
             </div>
         </div>
     </div>
@@ -270,6 +313,7 @@
         let places = []; // Almacenará todos los places
         let markers = []; // Almacenará los marcadores del mapa
         let selectedTags = new Set(); // Almacenará los tags seleccionados
+        let favoritePlaces = new Set(); // Almacenará los IDs de los lugares favoritos
 
         // Función para cargar los places
         async function loadPlaces() {
@@ -387,8 +431,38 @@
             });
         }
 
+        // Función para mostrar los lugares favoritos
+        function showFavorites() {
+            // Filtrar los lugares favoritos
+            const favoritePlacesList = places.filter(place => favoritePlaces.has(place.id));
+            
+            // Limpiar marcadores existentes
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            // Añadir solo los marcadores de lugares favoritos
+            favoritePlacesList.forEach(place => {
+                const marker = L.marker([place.latitude, place.longitude]).addTo(map);
+                marker.bindPopup(`<b>${place.name}</b><br>${place.address}`);
+                
+                // Agregar evento click al marcador
+                marker.on('click', () => {
+                    showPlaceDetails(place, true); // true indica que es un lugar favorito
+                });
+                
+                markers.push(marker);
+            });
+
+            // Actualizar el estado del botón de favoritos
+            const favoritesBtn = document.getElementById('favoritesBtn');
+            if (favoritesBtn) {
+                favoritesBtn.classList.toggle('bg-blue-500');
+                favoritesBtn.classList.toggle('bg-gray-700');
+            }
+        }
+
         // Función para mostrar los detalles del lugar
-        function showPlaceDetails(place) {
+        function showPlaceDetails(place, isFavorite = false) {
             console.log('Mostrando detalles del lugar:', place);
             
             // Actualizar el contenido del modal
@@ -396,16 +470,62 @@
             document.getElementById('placeAddress').textContent = place.address;
             document.getElementById('placeDescription').textContent = place.description || 'Sin descripción';
             
-            // Configurar el botón de favoritos
-            const addToFavoritesBtn = document.getElementById('addToFavorites');
-            addToFavoritesBtn.onclick = () => addPlaceToFavorites(place.id);
+            // Obtener los botones del modal
+            const closeBtn = document.getElementById('closePlaceModal');
+            const actionBtn = document.getElementById('addToFavorites');
+            
+            if (isFavorite) {
+                // Si es un lugar favorito, cambiar el botón a "Eliminar"
+                actionBtn.textContent = 'Eliminar de favoritos';
+                actionBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                actionBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+                actionBtn.onclick = () => removeFromFavorites(place.id);
+            } else {
+                // Si no es favorito, mostrar el botón de añadir a favoritos
+                actionBtn.textContent = favoritePlaces.has(place.id) ? 'En favoritos' : 'Añadir a favoritos';
+                actionBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
+                actionBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+                actionBtn.disabled = favoritePlaces.has(place.id);
+                actionBtn.onclick = () => addPlaceToFavorites(place.id);
+            }
             
             // Mostrar el modal
             const modal = document.getElementById('placeDetailsModal');
             modal.classList.remove('hidden');
-            
-            // Verificar si el modal se está mostrando
-            console.log('Modal visibility:', modal.classList.contains('hidden') ? 'hidden' : 'visible');
+        }
+
+        // Función para cargar los lugares favoritos
+        async function loadFavoritePlaces() {
+            try {
+                const response = await fetch('/api/favorite-places', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error('Error al cargar los lugares favoritos');
+                }
+                
+                const data = await response.json();
+                favoritePlaces = new Set(data.map(place => place.id));
+                updateFavoritesButton();
+            } catch (error) {
+                console.error('Error cargando lugares favoritos:', error);
+            }
+        }
+
+        // Función para actualizar el botón de favoritos
+        function updateFavoritesButton() {
+            const favoritesBtn = document.getElementById('favoritesBtn');
+            if (favoritesBtn) {
+                favoritesBtn.innerHTML = `Favoritos (${favoritePlaces.size})`;
+            }
         }
 
         // Función para añadir un lugar a favoritos
@@ -415,17 +535,19 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
                     body: JSON.stringify({ place_id: placeId })
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Error al añadir a favoritos');
+                    throw new Error('Error al añadir a favoritos');
                 }
 
-                const data = await response.json();
+                favoritePlaces.add(placeId);
+                updateFavoritesButton();
                 
                 Swal.fire({
                     icon: 'success',
@@ -434,29 +556,75 @@
                     timer: 1500
                 });
                 
-                // Deshabilitar el botón después de añadir a favoritos
+                // Actualizar el botón en el modal
                 const addToFavoritesBtn = document.getElementById('addToFavorites');
-                addToFavoritesBtn.disabled = true;
-                addToFavoritesBtn.textContent = 'En favoritos';
-                addToFavoritesBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                addToFavoritesBtn.classList.add('bg-green-500', 'cursor-not-allowed');
-                
+                if (addToFavoritesBtn) {
+                    addToFavoritesBtn.disabled = true;
+                    addToFavoritesBtn.textContent = 'En favoritos';
+                    addToFavoritesBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                    addToFavoritesBtn.classList.add('bg-green-500', 'cursor-not-allowed');
+                }
             } catch (error) {
                 console.error('Error:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Error',
-                    text: error.message
+                    text: 'No se pudo añadir a favoritos'
                 });
             }
         }
 
-        // Cerrar el modal de detalles
-        document.getElementById('closePlaceModal').addEventListener('click', (e) => {
-            e.preventDefault();
-            const modal = document.getElementById('placeDetailsModal');
-            modal.classList.add('hidden');
-            modal.removeAttribute('inert'); // Asegurarse de que el modal sea interactivo
+        // Función para eliminar un lugar de favoritos
+        async function removeFromFavorites(placeId) {
+            try {
+                const response = await fetch(`/api/favorite-places/${placeId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al eliminar de favoritos');
+                }
+
+                favoritePlaces.delete(placeId);
+                updateFavoritesButton();
+                
+                // Cerrar el modal
+                document.getElementById('placeDetailsModal').classList.add('hidden');
+                
+                // Actualizar los marcadores si estamos en la vista de favoritos
+                const favoritesBtn = document.getElementById('favoritesBtn');
+                if (favoritesBtn && favoritesBtn.classList.contains('bg-blue-500')) {
+                    showFavorites();
+                }
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Eliminado de favoritos!',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo eliminar de favoritos'
+                });
+            }
+        }
+
+        // Eventos para los modales
+        document.getElementById('closePlaceModal').addEventListener('click', () => {
+            document.getElementById('placeDetailsModal').classList.add('hidden');
+        });
+
+        document.getElementById('closeFavoritesModal').addEventListener('click', () => {
+            document.getElementById('favoritesModal').classList.add('hidden');
         });
 
         // Evento para abrir/cerrar la sección de filtros
@@ -472,6 +640,9 @@
         document.getElementById('applyFilters').addEventListener('click', () => {
             updateMapMarkers();
         });
+
+        // Cargar lugares favoritos al iniciar
+        loadFavoritePlaces();
 
         // Cargar los places al iniciar
         loadPlaces();
