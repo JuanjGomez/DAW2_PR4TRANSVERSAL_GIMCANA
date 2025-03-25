@@ -55,10 +55,10 @@
         }
         .map-buttons-container {
             position: absolute;
-            top: 0px; /* Moved lower */
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 1000;
+            z-index: 1001;
             width: 100%;
             max-width: 600px;
             display: flex;
@@ -89,7 +89,8 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 15px;
-            margin-top: 10px;
+            margin-top: 80px;
+            z-index: 1000;
         }
         .important {
             background-color: darkred;
@@ -270,29 +271,76 @@
         let markers = []; // Almacenará los marcadores del mapa
         let selectedTags = new Set(); // Almacenará los tags seleccionados
 
+        // Función para cargar los places
+        async function loadPlaces() {
+            try {
+                const response = await fetch('/api/places', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error('Error al cargar los lugares');
+                }
+                
+                const data = await response.json();
+                places = data;
+                // Asegurarse de que cada place tenga la propiedad tags
+                places = places.map(place => ({
+                    ...place,
+                    tags: place.tags || [] // Si tags es undefined, se asigna un array vacío
+                }));
+                updateMapMarkers();
+            } catch (error) {
+                console.error('Error cargando places:', error);
+                if (error.message.includes('Unexpected token')) {
+                    window.location.href = '/login';
+                }
+            }
+        }
+
         // Función para cargar los tags
         async function loadTags() {
-            console.log('Cargando tags...'); // Mensaje de depuración
+            console.log('Cargando tags...');
             try {
-                const response = await fetch('/api/tags');
-                console.log('Respuesta recibida:', response); // Mensaje de depuración
+                const response = await fetch('/api/tags', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                
                 if (!response.ok) {
+                    if (response.status === 401) {
+                        window.location.href = '/login';
+                        return;
+                    }
                     throw new Error('Error al cargar los tags');
                 }
+                
                 const tags = await response.json();
-                console.log('Tags cargados:', tags); // Mensaje de depuración
+                console.log('Tags cargados:', tags);
                 const tagsList = document.getElementById('tagsList');
-                tagsList.innerHTML = tags.map(tag => `
-                    <div class="tag-chip ${selectedTags.has(tag.id) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} 
-                        px-4 py-2 rounded-full cursor-pointer transition-colors duration-200"
-                        data-id="${tag.id}" onclick="toggleTag(${tag.id})">
-                        ${tag.name}
-                    </div>
-                `).join('');
-                console.log('Tags generados en el DOM:', tagsList.innerHTML); // Mensaje de depuración
+                if (tagsList) {
+                    tagsList.innerHTML = tags.map(tag => `
+                        <div class="tag-chip ${selectedTags.has(tag.id) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} 
+                            px-4 py-2 rounded-full cursor-pointer transition-colors duration-200"
+                            data-id="${tag.id}" onclick="toggleTag(${tag.id})">
+                            ${tag.name}
+                        </div>
+                    `).join('');
+                }
             } catch (error) {
                 console.error('Error cargando tags:', error);
-                alert('Error al cargar los tags. Por favor, inténtalo de nuevo.');
+                if (error.message.includes('Unexpected token')) {
+                    window.location.href = '/login';
+                }
             }
         }
 
@@ -310,22 +358,6 @@
                 tagChip.classList.toggle('text-white');
                 tagChip.classList.toggle('bg-gray-200');
                 tagChip.classList.toggle('text-gray-700');
-            }
-        }
-
-        // Función para cargar los places
-        async function loadPlaces() {
-            try {
-                const response = await fetch('/api/places');
-                places = await response.json();
-                // Asegurarse de que cada place tenga la propiedad tags
-                places = places.map(place => ({
-                    ...place,
-                    tags: place.tags || [] // Si tags es undefined, se asigna un array vacío
-                }));
-                updateMapMarkers();
-            } catch (error) {
-                console.error('Error cargando places:', error);
             }
         }
 
