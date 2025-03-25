@@ -931,6 +931,149 @@
 
         // Evento para el botón de limpiar filtro de distancia
         document.getElementById('clearDistanceFilter').addEventListener('click', clearDistanceFilter);
+
+        // Evento para el botón de Gimcanas
+        document.getElementById('lobbiesBtn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/gimcanas', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar las gimcanas');
+                }
+
+                const gimcanas = await response.json();
+                const gimcanaList = document.getElementById('gimcanaList');
+                gimcanaList.innerHTML = '';
+
+                gimcanas.forEach(gimcana => {
+                    const gimcanaCard = document.createElement('div');
+                    gimcanaCard.className = 'bg-white p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow';
+                    gimcanaCard.innerHTML = `
+                        <h3 class="font-bold text-lg mb-2">${gimcana.name}</h3>
+                        <p class="text-gray-600 text-sm mb-2">${gimcana.description || 'Sin descripción'}</p>
+                        <div class="flex justify-between items-center text-sm text-gray-500">
+                            <span>${gimcana.places_count || 0} lugares</span>
+                            <span>${gimcana.duration || 'N/A'} min</span>
+                        </div>
+                    `;
+                    gimcanaCard.onclick = () => showGimcanaDetails(gimcana);
+                    gimcanaList.appendChild(gimcanaCard);
+                });
+
+                document.getElementById('gimcanaModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar las gimcanas'
+                });
+            }
+        });
+
+        // Evento para cerrar el modal de gimcanas
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('gimcanaModal').classList.add('hidden');
+        });
+
+        // Función para mostrar detalles de una gimcana
+        async function showGimcanaDetails(gimcana) {
+            try {
+                const response = await fetch(`/api/gimcanas/${gimcana.id}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error al cargar los detalles de la gimcana');
+                }
+
+                const details = await response.json();
+                const detailsContent = document.getElementById('gimcanaDetailsContent');
+                
+                detailsContent.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-bold">${gimcana.name}</h2>
+                        <button id="closeGimcanaDetails" class="text-gray-500 hover:text-gray-700">&times;</button>
+                    </div>
+                    <div class="mb-4">
+                        <p class="text-gray-600">${gimcana.description || 'Sin descripción'}</p>
+                    </div>
+                    <div class="mb-4">
+                        <h3 class="font-bold mb-2">Detalles:</h3>
+                        <ul class="list-disc list-inside">
+                            <li>Duración: ${gimcana.duration || 'N/A'} minutos</li>
+                            <li>Lugares: ${gimcana.places_count || 0}</li>
+                        </ul>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button id="joinGimcana" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                            Unirse a la Gimcana
+                        </button>
+                    </div>
+                `;
+
+                // Evento para cerrar el modal de detalles
+                document.getElementById('closeGimcanaDetails').addEventListener('click', () => {
+                    document.getElementById('gimcanaDetailsModal').classList.add('hidden');
+                });
+
+                // Evento para unirse a la gimcana
+                document.getElementById('joinGimcana').addEventListener('click', async () => {
+                    try {
+                        const response = await fetch('/api/group/join', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                            },
+                            body: JSON.stringify({ gimcana_id: gimcana.id })
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('Error al unirse a la gimcana');
+                        }
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Éxito!',
+                            text: 'Te has unido a la gimcana correctamente',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+
+                        // Cerrar los modales
+                        document.getElementById('gimcanaModal').classList.add('hidden');
+                        document.getElementById('gimcanaDetailsModal').classList.add('hidden');
+                    } catch (error) {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo unir a la gimcana'
+                        });
+                    }
+                });
+
+                document.getElementById('gimcanaDetailsModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar los detalles de la gimcana'
+                });
+            }
+        }
     </script>
     <script src="{{ asset('js/toolsUser.js') }}"></script>
 </body>
