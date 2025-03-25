@@ -60,7 +60,7 @@ class User extends Authenticatable
     }
     public function groups()
     {
-        return $this->hasMany(Group::class);
+        return $this->belongsToMany(Group::class, 'group_members');
     }
 
     public function memberGroups()
@@ -72,7 +72,7 @@ class User extends Authenticatable
 
     public function favoritePlaces()
     {
-        return $this->belongsToMany(Place::class, 'user_favorite')
+        return $this->belongsToMany(Place::class, 'favorite_places')
                     ->withTimestamps();
     }
 }

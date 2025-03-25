@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Place extends Model
 {
     use HasFactory;
+
+    protected $table = 'places';
 
     protected $fillable = [
         'name',
@@ -15,6 +17,7 @@ class Place extends Model
         'latitude',
         'longitude',
         'icon',
+        'description'
     ];
 
     public function tags()

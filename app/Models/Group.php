@@ -2,27 +2,29 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Group extends Model
 {
     use HasFactory;
 
+    protected $table = 'groups';
+
     protected $fillable = [
         'name',
-        'competition_id',
-        'leader_id',
-        'current_checkpoint_id',
+        'current_checkpoint',
+        'gimcana_id',
     ];
+
+    public function gimcana()
+    {
+        return $this->belongsTo(Gimcana::class);
+    }
 
     public function members()
     {
-        return $this->hasMany(GroupMember::class);
+        return $this->belongsToMany(User::class, 'group_members');
     }
 
-    public function checkpoints()
-    {
-        return $this->hasMany(GroupCheckpoint::class);
-    }
 }

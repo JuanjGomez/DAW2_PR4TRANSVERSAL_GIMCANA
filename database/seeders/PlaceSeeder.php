@@ -8,33 +8,22 @@ use App\Models\Place;
 
 class PlaceSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         Place::create([
-            'name' => 'Plaza de la Constitución',
-            'address' => 'Plaza de la Constitución, 1',
-            'latitude' => 37.389089,
-            'longitude' => -5.984641,
-            'icon' => 'https://example.com/icon.png',
+            'name' => 'Plaza Mayor',
+            'address' => 'Plaza Mayor, Madrid',
+            'latitude' => 40.415363,
+            'longitude' => -3.707398,
+            'icon' => 'icon-plaza',
         ]);
 
         Place::create([
-            'name' => 'Plaza de la Constitución',
-            'address' => 'Plaza de la Constitución, 1',
-            'latitude' => 37.389089,
-            'longitude' => -5.984641,
-            'icon' => 'https://example.com/icon.png',
-        ]);
-
-        Place::create([
-            'name' => 'Plaza de la Constitución',
-            'address' => 'Plaza de la Constitución, 1',
-            'latitude' => 37.389089,
-            'longitude' => -5.984641,
-            'icon' => 'https://example.com/icon.png',
+            'name' => 'Catedral de la Almudena',
+            'address' => 'Calle de Bailén, 10, Madrid',
+            'latitude' => 40.415028,
+            'longitude' => -3.714167,
+            'icon' => 'icon-cathedral',
         ]);
     }
-}
+} 

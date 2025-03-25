@@ -9,23 +9,36 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        // Crear un usuario administrador
         User::create([
             'name' => 'Admin',
-            'email' => 'admin@gmail.com',
-            'password' => Hash::make('asdASD123'),
-            'role_id' => 1,
+            'email' => 'admin@example.com',
+            'password' => Hash::make('password123'), // Cambia esto por una contraseña segura
+            'role_id' => 1, // Asume que el rol de administrador tiene ID 1
+        ]);
+
+        // Crear usuarios normales
+        User::create([
+            'name' => 'Usuario 1',
+            'email' => 'usuario1@example.com',
+            'password' => Hash::make('password123'),
+            'role_id' => 2, // Asume que el rol de usuario tiene ID 2
         ]);
 
         User::create([
-            'name' => 'User',
-            'email' => 'user@gmail.com',
-            'password' => Hash::make('asdASD123'),
+            'name' => 'Usuario 2',
+            'email' => 'usuario2@example.com',
+            'password' => Hash::make('password123'),
+            'role_id' => 2,
+        ]);
+
+        User::create([
+            'name' => 'Usuario 3',
+            'email' => 'usuario3@example.com',
+            'password' => Hash::make('password123'),
             'role_id' => 2,
         ]);
     }
-}
+} 
