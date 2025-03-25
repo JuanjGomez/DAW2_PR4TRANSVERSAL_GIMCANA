@@ -62,5 +62,3 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/challenge-answers/verify', [ChallengeAnswerController::class, 'verifyAnswer']);
     Route::put('/places/{place}/tags', [PlaceController::class, 'updateTags']);
 });
-
-Route::get('/map', [MapController::class, 'index'])->name('map.index');
