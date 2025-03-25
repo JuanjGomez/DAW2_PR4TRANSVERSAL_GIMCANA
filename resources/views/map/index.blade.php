@@ -25,6 +25,37 @@
             width: 90%;
             max-width: 500px;
         }
+        .distance-filter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 250px;
+        }
+        .distance-filter h3 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .distance-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .clear-filter {
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .clear-filter:hover {
+            background-color: #dc2626;
+        }
         .filters-card {
             background-color: white;
             border-radius: 16px;
@@ -191,6 +222,19 @@
             </form>
         </div>
 
+        <!-- Filtro de distancia -->
+        <div class="distance-filter">
+            <h3>Filtro por Distancia</h3>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+                Distancia máxima: <span id="distanceValue">5</span> km
+            </label>
+            <input type="range" id="distanceSlider" min="0.5" max="20" step="0.5" value="5" 
+                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+            <div class="distance-controls">
+                <button id="clearDistanceFilter" class="clear-filter">Limpiar Filtro</button>
+            </div>
+        </div>
+
         <!-- Sección de filtros (ahora debajo de los botones) -->
         <div id="filtersSection" class="hidden">
             <div class="flex justify-between items-center mb-4">
@@ -270,60 +314,47 @@
         // Marcador del usuario
         let userMarker;
 
-        // Obtener y mostrar la ubicación del usuario
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-
-                    // Si ya existe un marcador, actualizar su posición
-                    if (userMarker) {
-                        userMarker.setLatLng([latitude, longitude]);
-                    } else {
-                        // Crear nuevo marcador circular
-                        userMarker = L.circleMarker([latitude, longitude], {
-                            radius: 10,
-                            fillColor: '#4285F4', // Color azul de Google Maps
-                            color: '#ffffff',     // Borde blanco
-                            weight: 2,            // Grosor del borde
-                            opacity: 1,
-                            fillOpacity: 1
-                        }).addTo(map);
-                        map.setView([latitude, longitude], 15);
-                    }
-                },
-                (error) => {
-                    console.error('Error al obtener la ubicación:', error);
-                },
-                {
-                    enableHighAccuracy: true,
-                    maximumAge: 30000,
-                    timeout: 27000
-                }
-            );
-        }
-
-        // Eventos para los botones
-        document.getElementById('lobbiesBtn').addEventListener('click', () => {
-            // Aquí irá la lógica para abrir el modal de Lobbies
-            console.log('Abrir modal de Lobbies');
-        });
-
         // Variables globales
         let places = []; // Almacenará todos los places
         let markers = []; // Almacenará los marcadores del mapa
         let selectedTags = new Set(); // Almacenará los tags seleccionados
         let favoritePlaces = new Set(); // Almacenará los IDs de los lugares favoritos
+        let userPosition = null;
+        let maxDistance = 5; // Distancia máxima en kilómetros
+        let isFilteringByDistance = false;
+
+        // Función para calcular la distancia entre dos puntos en kilómetros
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radio de la Tierra en km
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
 
         // Función para cargar los places
         async function loadPlaces() {
             try {
-                const response = await fetch('/api/places', {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
+                let response;
+                if (isFilteringByDistance && userPosition) {
+                    response = await fetch(`/api/places/distance?latitude=${userPosition.lat}&longitude=${userPosition.lng}&distance=${maxDistance}`, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                } else {
+                    response = await fetch('/api/places', {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                }
                 
                 if (!response.ok) {
                     if (response.status === 401) {
@@ -335,10 +366,9 @@
                 
                 const data = await response.json();
                 places = data;
-                // Asegurarse de que cada place tenga la propiedad tags
                 places = places.map(place => ({
                     ...place,
-                    tags: place.tags || [] // Si tags es undefined, se asigna un array vacío
+                    tags: place.tags || []
                 }));
                 updateMapMarkers();
             } catch (error) {
@@ -372,13 +402,17 @@
                 console.log('Tags cargados:', tags);
                 const tagsList = document.getElementById('tagsList');
                 if (tagsList) {
-                    tagsList.innerHTML = tags.map(tag => `
-                        <div class="tag-chip ${selectedTags.has(tag.id) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} 
-                            px-4 py-2 rounded-full cursor-pointer transition-colors duration-200"
-                            data-id="${tag.id}" onclick="toggleTag(${tag.id})">
-                            ${tag.name}
-                        </div>
-                    `).join('');
+                    // Limpiar el contenido actual antes de añadir los nuevos tags
+                    tagsList.innerHTML = '';
+                    tags.forEach(tag => {
+                        const tagElement = document.createElement('div');
+                        tagElement.className = `tag-chip ${selectedTags.has(tag.id) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} 
+                            px-4 py-2 rounded-full cursor-pointer transition-colors duration-200`;
+                        tagElement.dataset.id = tag.id;
+                        tagElement.textContent = tag.name;
+                        tagElement.onclick = () => toggleTag(tag.id);
+                        tagsList.appendChild(tagElement);
+                    });
                 }
             } catch (error) {
                 console.error('Error cargando tags:', error);
@@ -422,7 +456,6 @@
                 const marker = L.marker([place.latitude, place.longitude]).addTo(map);
                 marker.bindPopup(`<b>${place.name}</b><br>${place.address}`);
                 
-                // Agregar evento click al marcador
                 marker.on('click', () => {
                     showPlaceDetails(place);
                 });
@@ -632,6 +665,11 @@
             const filtersSection = document.getElementById('filtersSection');
             filtersSection.classList.toggle('hidden');
             if (!filtersSection.classList.contains('hidden')) {
+                // Limpiar los tags existentes antes de cargar nuevos
+                const tagsList = document.getElementById('tagsList');
+                if (tagsList) {
+                    tagsList.innerHTML = '';
+                }
                 loadTags();
             }
         });
@@ -641,11 +679,99 @@
             updateMapMarkers();
         });
 
+        // Evento para el control deslizante de distancia
+        document.getElementById('distanceSlider').addEventListener('input', function(e) {
+            maxDistance = parseFloat(e.target.value);
+            document.getElementById('distanceValue').textContent = maxDistance;
+            isFilteringByDistance = true;
+            loadPlaces();
+        });
+
+        // Obtener y mostrar la ubicación del usuario
+        if (navigator.geolocation) {
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    userPosition = { lat: latitude, lng: longitude };
+
+                    // Si ya existe un marcador, actualizar su posición
+                    if (userMarker) {
+                        userMarker.setLatLng([latitude, longitude]);
+                    } else {
+                        // Crear nuevo marcador circular
+                        userMarker = L.circleMarker([latitude, longitude], {
+                            radius: 10,
+                            fillColor: '#4285F4',
+                            color: '#ffffff',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 1
+                        }).addTo(map);
+                        map.setView([latitude, longitude], 15);
+                    }
+
+                    // Si estamos filtrando por distancia, actualizar los lugares
+                    if (isFilteringByDistance) {
+                        loadPlaces();
+                    }
+                },
+                (error) => {
+                    console.error('Error al obtener la ubicación:', error);
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 30000,
+                    timeout: 27000
+                }
+            );
+        }
+
+        // Función para limpiar la caché
+        function clearCache() {
+            // Limpiar la caché de lugares
+            places = [];
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+            
+            // Recargar los lugares
+            loadPlaces();
+            
+            // Limpiar la caché de tags
+            selectedTags.clear();
+            loadTags();
+            
+            // Limpiar la caché de lugares favoritos
+            favoritePlaces.clear();
+            loadFavoritePlaces();
+        }
+
+        // Limpiar la caché cada 5 minutos
+        setInterval(clearCache, 5 * 60 * 1000);
+
+        // Limpiar la caché cuando se cambia de pestaña
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible') {
+                clearCache();
+            }
+        });
+
         // Cargar lugares favoritos al iniciar
         loadFavoritePlaces();
 
         // Cargar los places al iniciar
         loadPlaces();
+
+        // Función para limpiar el filtro de distancia
+        function clearDistanceFilter() {
+            maxDistance = 5;
+            isFilteringByDistance = false;
+            document.getElementById('distanceSlider').value = maxDistance;
+            document.getElementById('distanceValue').textContent = maxDistance;
+            loadPlaces();
+        }
+
+        // Evento para el botón de limpiar filtro de distancia
+        document.getElementById('clearDistanceFilter').addEventListener('click', clearDistanceFilter);
     </script>
     <script src="{{ asset('js/toolsUser.js') }}"></script>
 </body>
