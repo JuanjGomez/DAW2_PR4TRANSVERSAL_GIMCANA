@@ -112,23 +112,23 @@
                             <input type="hidden" id="icon" name="icon" value="default-marker">
                             <div class="icon-selector mt-2 flex flex-wrap gap-2">
                                 <div class="icon-option cursor-pointer p-2 border rounded selected" data-value="default-marker">
-                                    <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" alt="Predeterminado" class="w-8 h-8">
+                                    <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" alt="Predeterminado" class="w-6 h-auto">
                                     <span class="text-xs block text-center mt-1">Predeterminado</span>
                                 </div>
                                 <div class="icon-option cursor-pointer p-2 border rounded" data-value="museum-marker">
-                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" alt="Museo" class="w-8 h-8">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" alt="Museo" class="w-6 h-auto">
                                     <span class="text-xs block text-center mt-1">Museo</span>
                                 </div>
                                 <div class="icon-option cursor-pointer p-2 border rounded" data-value="monument-marker">
-                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" alt="Monumento" class="w-8 h-8">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" alt="Monumento" class="w-6 h-auto">
                                     <span class="text-xs block text-center mt-1">Monumento</span>
                                 </div>
                                 <div class="icon-option cursor-pointer p-2 border rounded" data-value="restaurant-marker">
-                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" alt="Restaurante" class="w-8 h-8">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" alt="Restaurante" class="w-6 h-auto">
                                     <span class="text-xs block text-center mt-1">Restaurante</span>
                                 </div>
                                 <div class="icon-option cursor-pointer p-2 border rounded" data-value="park-marker">
-                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png" alt="Parque" class="w-8 h-8">
+                                    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png" alt="Parque" class="w-6 h-auto">
                                     <span class="text-xs block text-center mt-1">Parque</span>
                                 </div>
                             </div>
@@ -279,23 +279,23 @@
                         <input type="hidden" id="edit-icon" name="icon" value="default-marker">
                         <div class="edit-icon-selector mt-2 flex flex-wrap gap-2">
                             <div class="icon-option cursor-pointer p-2 border rounded selected" data-value="default-marker">
-                                <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" alt="Predeterminado" class="w-8 h-8">
+                                <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" alt="Predeterminado" class="w-6 h-auto">
                                 <span class="text-xs block text-center mt-1">Predeterminado</span>
                             </div>
                             <div class="icon-option cursor-pointer p-2 border rounded" data-value="museum-marker">
-                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" alt="Museo" class="w-8 h-8">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png" alt="Museo" class="w-6 h-auto">
                                 <span class="text-xs block text-center mt-1">Museo</span>
                             </div>
                             <div class="icon-option cursor-pointer p-2 border rounded" data-value="monument-marker">
-                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" alt="Monumento" class="w-8 h-8">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" alt="Monumento" class="w-6 h-auto">
                                 <span class="text-xs block text-center mt-1">Monumento</span>
                             </div>
                             <div class="icon-option cursor-pointer p-2 border rounded" data-value="restaurant-marker">
-                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" alt="Restaurante" class="w-8 h-8">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" alt="Restaurante" class="w-6 h-auto">
                                 <span class="text-xs block text-center mt-1">Restaurante</span>
                             </div>
                             <div class="icon-option cursor-pointer p-2 border rounded" data-value="park-marker">
-                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png" alt="Parque" class="w-8 h-8">
+                                <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png" alt="Parque" class="w-6 h-auto">
                                 <span class="text-xs block text-center mt-1">Parque</span>
                             </div>
                         </div>
