@@ -11,6 +11,7 @@ use App\Http\Controllers\ChallengeAnswerController;
 use App\Http\Controllers\MapController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\FavoritePlaceController;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
@@ -56,6 +57,7 @@ Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gi
         Route::apiResource('gimcanas', GimcanaController::class);
         Route::apiResource('checkpoints', CheckpointController::class);
         Route::get('/tags', [TagController::class, 'index']);
+        Route::post('/favorite-places', [FavoritePlaceController::class, 'store'])->middleware('auth:sanctum');
     });
 });
 

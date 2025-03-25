@@ -12,7 +12,7 @@ class PlaceController extends Controller
 {
     public function index()
     {
-        return Place::all();
+        return Place::with('tags')->get();
     }
 
     public function store(Request $request)
