@@ -1169,28 +1169,62 @@
             document.getElementById('editGimcanaModal').classList.add('hidden');
         }
 
-        // Agregar la función para abrir el modal de edición de checkpoints
+        // Agregar o modificar la función para abrir el modal de edición de checkpoints
         function openEditCheckpointModal(id) {
-            fetch(`/api/checkpoints/${id}`)
-                .then(response => response.json())
-                .then(checkpoint => {
-                    document.getElementById('edit-checkpoint-id').value = checkpoint.id;
-                    document.getElementById('edit-checkpoint-place').value = checkpoint.place_id;
-                    document.getElementById('edit-checkpoint-gimcana').value = checkpoint.gimcana_id;
-                    document.getElementById('edit-checkpoint-challenge').value = checkpoint.challenge;
-                    document.getElementById('edit-checkpoint-clue').value = checkpoint.clue;
-                    document.getElementById('edit-checkpoint-order').value = checkpoint.order;
-
-                    document.getElementById('editCheckpointModal').classList.remove('hidden');
-                })
-                .catch(error => {
-                    console.error("Error cargando checkpoint para editar:", error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'No se pudo cargar el punto de control para editar'
-                    });
+            console.log("Abriendo modal para editar checkpoint:", id);
+            
+            // Primero, cargar los datos actuales de lugares y gimcanas para los selectores
+            Promise.all([
+                fetch('/places').then(res => res.json()),
+                fetch('/gimcanas').then(res => res.json()),
+                fetch(`/api/checkpoints/${id}`).then(res => res.json())
+            ])
+            .then(([places, gimcanas, checkpoint]) => {
+                console.log("Datos cargados - Lugares:", places.length, "Gimcanas:", gimcanas.length, "Checkpoint:", checkpoint);
+                
+                // Actualizar selector de lugares
+                const placeSelect = document.getElementById('edit-checkpoint-place');
+                placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
+                
+                places.forEach(place => {
+                    const option = document.createElement('option');
+                    option.value = place.id;
+                    option.textContent = place.name;
+                    placeSelect.appendChild(option);
                 });
+                
+                // Actualizar selector de gimcanas
+                const gimcanaSelect = document.getElementById('edit-checkpoint-gimcana');
+                gimcanaSelect.innerHTML = '<option value="">Selecciona una gimcana</option>';
+                
+                gimcanas.forEach(gimcana => {
+                    const option = document.createElement('option');
+                    option.value = gimcana.id;
+                    option.textContent = gimcana.name;
+                    gimcanaSelect.appendChild(option);
+                });
+                
+                // Ahora llenar el formulario con los datos del checkpoint
+                document.getElementById('edit-checkpoint-id').value = checkpoint.id;
+                document.getElementById('edit-checkpoint-challenge').value = checkpoint.challenge;
+                document.getElementById('edit-checkpoint-clue').value = checkpoint.clue;
+                document.getElementById('edit-checkpoint-order').value = checkpoint.order;
+                
+                // Establecer los valores seleccionados después de cargar las opciones
+                document.getElementById('edit-checkpoint-place').value = checkpoint.place_id;
+                document.getElementById('edit-checkpoint-gimcana').value = checkpoint.gimcana_id;
+                
+                // Mostrar el modal
+                document.getElementById('editCheckpointModal').classList.remove('hidden');
+            })
+            .catch(error => {
+                console.error("Error preparando el modal de edición:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo cargar los datos para editar el punto de control'
+                });
+            });
         }
 
         // Función para cerrar el modal de edición de checkpoints
@@ -1201,45 +1235,77 @@
         // Agregar a las funciones de setup al final del archivo
         document.getElementById('editCheckpointForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const formData = new FormData(this);
-
+            
+            const checkpointId = document.getElementById('edit-checkpoint-id').value;
+            const placeId = document.getElementById('edit-checkpoint-place').value;
+            const gimcanaId = document.getElementById('edit-checkpoint-gimcana').value;
+            const challenge = document.getElementById('edit-checkpoint-challenge').value;
+            const clue = document.getElementById('edit-checkpoint-clue').value;
+            const order = document.getElementById('edit-checkpoint-order').value;
+            
+            // Validar que todos los campos estén completos
+            if (!placeId || !gimcanaId || !challenge || !clue || !order) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Campos incompletos',
+                    text: 'Por favor completa todos los campos'
+                });
+                return;
+            }
+            
+            // Preparar los datos para el envío
             const data = {
-                place_id: formData.get('place_id'),
-                gimcana_id: formData.get('gimcana_id'),
-                challenge: formData.get('challenge'),
-                clue: formData.get('clue'),
-                order: parseInt(formData.get('order'))
+                place_id: placeId,
+                gimcana_id: gimcanaId,
+                challenge: challenge,
+                clue: clue,
+                order: parseInt(order)
             };
-
-            const checkpointId = formData.get('id');
-
+            
+            console.log("Enviando datos al servidor:", data);
+            
+            // Hacer la petición al servidor usando AJAX
             fetch(`/api/checkpoints/${checkpointId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json'
                 },
                 body: JSON.stringify(data)
             })
             .then(response => {
+                console.log("Respuesta recibida:", response.status);
+                
+                // Manejar respuesta no exitosa
                 if (!response.ok) {
-                    return response.json().then(err => {
-                        throw new Error(err.error || 'Error al actualizar el punto de control');
-                    });
+                    if (response.headers.get('content-type')?.includes('application/json')) {
+                        return response.json().then(errData => {
+                            throw new Error(errData.error || 'Error al actualizar el punto de control');
+                        });
+                    } else {
+                        // Si no es JSON, mostrar mensaje genérico
+                        throw new Error(`Error del servidor: ${response.status}`);
+                    }
                 }
+                
                 return response.json();
             })
-            .then(checkpoint => {
+            .then(data => {
+                console.log("Checkpoint actualizado:", data);
+                
                 Swal.fire({
                     icon: 'success',
-                    title: 'Punto de control actualizado con éxito',
-                    showConfirmButton: false,
-                    timer: 1500
+                    title: 'Éxito',
+                    text: 'Punto de control actualizado correctamente'
                 });
+                
                 closeEditCheckpointModal();
-                loadCheckpoints();
+                loadCheckpoints(); // Recargar la lista de checkpoints
             })
             .catch(error => {
+                console.error("Error actualizando checkpoint:", error);
+                
                 Swal.fire({
                     icon: 'error',
                     title: 'Error al actualizar el punto de control',

@@ -71,4 +71,28 @@ class CheckpointController extends Controller
             return response()->json(['error' => 'Error deleting checkpoint'], 500);
         }
     }
+
+    public function update(Request $request, Checkpoint $checkpoint)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'place_id' => 'required|exists:places,id',
+                'gimcana_id' => 'required|exists:gimcanas,id',
+                'challenge' => 'required|string',
+                'clue' => 'required|string',
+                'order' => 'required|integer|min:1'
+            ]);
+
+            if ($validator->fails()) {
+                Log::warning('Validation failed: ' . json_encode($validator->errors()));
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $checkpoint->update($request->all());
+            return response()->json($checkpoint->load(['place', 'gimcana']), 200);
+        } catch (\Exception $e) {
+            Log::error('Error updating checkpoint: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al actualizar el punto de control: ' . $e->getMessage()], 500);
+        }
+    }
 } 
