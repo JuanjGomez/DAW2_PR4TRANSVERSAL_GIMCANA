@@ -302,13 +302,13 @@ function setupCheckpointForm() {
 function loadPlaces(map) {
     // Limpiar marcadores existentes si hay mapa
     if (map) {
-        window.markers.forEach(marker => map.removeLayer(marker));
-        window.markers = [];
+        markers.forEach(marker => map.removeLayer(marker));
+        markers = [];
     }
     
     let url = '/places';
-    if (window.selectedTags.length > 0) {
-        url += `?tag_id=${window.selectedTags[0]}`;
+    if (selectedTags.length > 0) {
+        url += `?tag_id=${selectedTags[0]}`;
     }
     
     fetch(url, {
@@ -367,7 +367,7 @@ function loadPlaces(map) {
                 const marker = L.marker([place.latitude, place.longitude])
                     .addTo(map)
                     .bindPopup(place.name);
-                window.markers.push(marker);
+                markers.push(marker);
             });
         }
     })
