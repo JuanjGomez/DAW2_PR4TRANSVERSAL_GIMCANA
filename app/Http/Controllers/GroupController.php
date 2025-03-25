@@ -19,6 +19,11 @@ class GroupController extends Controller
             return response()->json(['success' => false, 'message' => 'Grupo no encontrado']);
         }
 
+        // Verificar si el usuario ya está en el grupo
+        if ($group->members->contains('id', $user->id)) {
+            return response()->json(['success' => true, 'message' => 'Ya eres miembro de este grupo']);
+        }
+
         // Verificar si el usuario ya está en cualquier grupo de cualquier gimcana
         $userGroups = Group::whereHas('members', function($query) use ($user) {
             $query->where('user_id', $user->id);
@@ -30,8 +35,8 @@ class GroupController extends Controller
 
         // Agregar al usuario al grupo
         $group->members()->attach($user->id);
-        $group->load('members');
-        return response()->json(['success' => true, 'group' => $group]);
+
+        return response()->json(['success' => true, 'message' => 'Te has unido al grupo']);
     }
 
     public function checkUserGroupStatus($gimcanaId)

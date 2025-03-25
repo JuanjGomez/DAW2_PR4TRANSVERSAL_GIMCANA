@@ -14,20 +14,19 @@ class GimcanaSeeder extends Seeder
     public function run(): void
     {
         Gimcana::create([
-            'name' => 'Gimcana 1',
-            'description' => 'Gimcana 1',
-            'max_groups' => 10,
-            'max_users_per_group' => 10,
+            'name' => 'Gimcana Histórica',
+            'description' => 'Descubre los monumentos más importantes de la ciudad',
+            'max_groups' => 5,
+            'max_users_per_group' => 4,
             'status' => 'waiting',
         ]);
 
         Gimcana::create([
-            'name' => 'Gimcana 2',
-            'description' => 'Gimcana 2',
-            'max_groups' => 10,
-            'max_users_per_group' => 10,
-            'status' => 'waiting',
+            'name' => 'Gimcana Gastronómica',
+            'description' => 'Prueba los platos más típicos de la región',
+            'max_groups' => 3,
+            'max_users_per_group' => 6,
+            'status' => 'active',
         ]);
-
     }
 }

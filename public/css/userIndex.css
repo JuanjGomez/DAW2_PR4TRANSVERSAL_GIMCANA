@@ -1,3 +1,8 @@
+#map {
+    height: 100vh;
+    width: 100%;
+    position: relative;
+}
 .map-buttons {
     position: absolute;
     top: 20px;
@@ -6,7 +11,18 @@
     z-index: 1000;
     display: flex;
     gap: 10px;
-    align-items: center;
+}
+.map-button {
+    background-color: #1f2937;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.map-button:hover {
+    background-color: #374151;
 }
 
 .lobby-buttons {
@@ -22,20 +38,6 @@
     padding-left: 50px;
     padding-right: 50px;
     border-radius: 8px;
-}
-
-.map-button {
-    background-color: #1f2937;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 8px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.map-button:hover {
-    background-color: #374151;
 }
 
 .lobby-button {
@@ -276,4 +278,45 @@
     .important {
         padding: 5px; /* Reduce el padding del botón */
     }
+}
+
+#map {
+    height: calc(100vh - 200px); /* Ajustar la altura del mapa para dejar espacio para los filtros */
+}
+
+#tagsList {
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+.tag-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.tag-chip:hover {
+    opacity: 0.9;
+}
+
+.tag-chip.selected {
+    background-color: #3b82f6;
+    color: white;
+}
+
+#filtersModal {
+    z-index: 1000; /* Asegúrate de que el modal esté por encima de otros elementos */
+}
+
+#filtersSection {
+    margin-top: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }

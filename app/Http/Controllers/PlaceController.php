@@ -10,28 +10,54 @@ use Illuminate\Support\Facades\DB;
 
 class PlaceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return Place::all();
+        try {
+            $query = Place::with('tags');
+
+            // Filtrar por etiqueta si se proporciona
+            if ($request->has('tag_id')) {
+                $query->whereHas('tags', function($q) use ($request) {
+                    $q->where('tags.id', $request->tag_id);
+                });
+            }
+
+            $places = $query->get();
+            return response()->json($places);
+        } catch (\Exception $e) {
+            Log::error('Error fetching places: ' . $e->getMessage());
+            return response()->json(['error' => 'Error fetching places'], 500);
+        }
     }
 
     public function store(Request $request)
     {
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:255',
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'icon' => 'required|string|max:255',
-            'tags' => 'sometimes|array',
-            'tags.*' => 'exists:tags,id'
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'name' => 'required|string|max:255',
+                'address' => 'required|string',
+                'latitude' => 'required|numeric|between:-90,90',
+                'longitude' => 'required|numeric|between:-180,180',
+                'icon' => 'nullable|string',
+                'tags' => 'nullable|array',
+                'tags.*' => 'exists:tags,id'
+            ]);
 
         $place = Place::create($validatedData);
 
-        // Asociar tags si se proporcionan
-        if ($request->has('tags')) {
-            $place->tags()->sync($request->tags);
+            $place = Place::create($request->except('tags'));
+
+            // Asignar etiquetas si se proporcionan
+            if ($request->has('tags')) {
+                $place->tags()->sync($request->tags);
+            }
+
+            Log::info('Place created successfully: ' . $place->id);
+            return response()->json($place->load('tags'), 201);
+
+        } catch (\Exception $e) {
+            Log::error('Error creating place: ' . $e->getMessage());
+            return response()->json(['error' => 'Error creating place'], 500);
         }
 
         return response()->json($place->load('tags'), 201);
@@ -39,7 +65,12 @@ class PlaceController extends Controller
 
     public function show(Place $place)
     {
-        return $place->load('tags');
+        try {
+            return response()->json($place->load('tags'));
+        } catch (\Exception $e) {
+            Log::error('Error fetching place: ' . $e->getMessage());
+            return response()->json(['error' => 'Error fetching place'], 500);
+        }
     }
 
     public function update(Request $request, Place $place)
@@ -84,6 +115,29 @@ class PlaceController extends Controller
             DB::rollBack();
             Log::error('Error al eliminar el lugar: ' . $e->getMessage());
             return response()->json(['error' => 'Error al eliminar el lugar'], 500);
+        }
+    }
+
+    public function updateTags(Request $request, Place $place)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'tags' => 'required|array',
+                'tags.*' => 'exists:tags,id'
+            ]);
+
+            if ($validator->fails()) {
+                Log::warning('Validation failed: ' . json_encode($validator->errors()));
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
+
+            $place->tags()->sync($request->tags);
+            Log::info('Place tags updated successfully: ' . $place->id);
+            return response()->json($place->load('tags'));
+
+        } catch (\Exception $e) {
+            Log::error('Error updating place tags: ' . $e->getMessage());
+            return response()->json(['error' => 'Error updating place tags'], 500);
         }
     }
 }
