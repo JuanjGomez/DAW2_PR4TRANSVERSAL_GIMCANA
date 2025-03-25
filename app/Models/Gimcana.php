@@ -14,8 +14,7 @@ class Gimcana extends Model
         'name',
         'description',
         'max_groups',
-        'max_users_per_group',
-        'status',
+        'max_users_per_group'
     ];
 
     protected $with = ['groups.members'];

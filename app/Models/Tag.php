@@ -12,11 +12,11 @@ class Tag extends Model
     protected $table = 'tags';
 
     protected $fillable = [
-        'name',
+        'name'
     ];
 
     public function places()
     {
-        return $this->belongsToMany(Place::class, 'place_tag');
+        return $this->belongsToMany(Place::class);
     }
 }

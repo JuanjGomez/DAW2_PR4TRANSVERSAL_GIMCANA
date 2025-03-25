@@ -8,9 +8,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\PlaceController;
 use App\Http\Controllers\CheckpointController;
 use App\Http\Controllers\ChallengeAnswerController;
-use App\Http\Controllers\MapController;
 use App\Http\Controllers\TagController;
-use App\Http\Controllers\GroupController;
+
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
@@ -64,6 +63,7 @@ Route::middleware(['auth'])->group(function () {
         Route::apiResource('gimcanas', GimcanaController::class);
         Route::apiResource('checkpoints', CheckpointController::class);
         Route::get('/tags', [TagController::class, 'index']);
+        Route::post('/favorite-places', [FavoritePlaceController::class, 'store'])->middleware('auth:sanctum');
     });
 });
 
@@ -89,6 +89,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/checkpoints/{checkpoint}/answers', [ChallengeAnswerController::class, 'index']);
     Route::post('/challenge-answers', [ChallengeAnswerController::class, 'store']);
     Route::post('/challenge-answers/verify', [ChallengeAnswerController::class, 'verifyAnswer']);
+
+    // Rutas para etiquetas
+    Route::get('/tags', [TagController::class, 'index']);
+    Route::post('/tags', [TagController::class, 'store']);
+    Route::delete('/tags/{tag}', [TagController::class, 'destroy']);
+    Route::get('/tags/{tag}/places', [TagController::class, 'getPlacesByTag']);
+
+    // Ruta para actualizar etiquetas de un lugar
+    Route::put('/places/{place}/tags', [PlaceController::class, 'updateTags']);
 });
 
 Route::get('/map', [MapController::class, 'index'])->name('map.index');

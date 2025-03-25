@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+
     // Inicializar el mapa
     const map = L.map('map').setView([40.4168, -3.7038], 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -6,19 +7,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }).addTo(map);
 
     // Variables globales
-    let markers = [];
-    let activeTab = 'places';
-    let answerCount = 1;
+    window.markers = [];
+    window.activeTab = 'places';
+    window.answerCount = 1;
+    window.selectedTags = [];
+    window.placeSelectedTags = [];
+    window.allTags = [];
+
+    // Inicializar el mapa
+    const mapElement = document.getElementById('map');
+    if (mapElement) {
+        window.map = L.map('map').setView([41.390205, 2.154007], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(window.map);
+    }
 
     // Configurar los formularios
-    setupPlaceForm(map, markers);
+    setupPlaceForm(window.map);
     setupGimcanaForm();
     setupCheckpointForm();
 
-    // Cargar lugares al inicio
-    loadPlaces(map, markers);
+    // Cargar datos iniciales
+    loadPlaces(window.map);
     loadGimcanas();
     loadCheckpoints();
+    loadTags();
 
     // Mostrar la pestaña de lugares por defecto
     showTab('places');
@@ -106,8 +121,9 @@ function removeAnswer(button) {
     });
 }
 
-function setupPlaceForm(map, markers) {
-    const form = document.getElementById('placeForm');
+function setupPlaceForm(map) {
+    const form = document.getElementById('place-form');
+    if (!form) return;
     
     // Añadir marcador al hacer clic en el mapa
     map.on('click', function(e) {
@@ -115,7 +131,7 @@ function setupPlaceForm(map, markers) {
         document.getElementById('longitude').value = e.latlng.lng;
     });
     
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const formData = new FormData(this);
@@ -124,85 +140,93 @@ function setupPlaceForm(map, markers) {
             address: formData.get('address'),
             latitude: formData.get('latitude'),
             longitude: formData.get('longitude'),
-            icon: formData.get('icon') || 'default-icon'
+            icon: formData.get('icon') || 'default-icon',
+            tags: window.placeSelectedTags
         };
         
-        fetch('/places', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
+        try {
+            const response = await fetch('/places', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            });
+
             if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.message || 'Error al crear el lugar');
-                });
+                const error = await response.json();
+                throw new Error(error.message || 'Error al crear el lugar');
             }
-            return response.json();
-        })
-        .then(place => {
-            Swal.fire({
-                icon: 'success',
-                title: 'Lugar creado con éxito',
-                showConfirmButton: false,
-                timer: 1500
-            });
+
+            const place = await response.json();
             form.reset();
-            loadPlaces(map, markers);
-        })
-        .catch(error => {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error al crear el lugar',
-                text: error.message
-            });
-        });
+            window.placeSelectedTags = [];
+            updatePlaceTagsUI();
+            loadPlaces(map);
+            showSuccess('Lugar creado exitosamente');
+        } catch (error) {
+            console.error('Error:', error);
+            showError(error.message || 'Error al crear el lugar');
+        }
     });
 }
 
 function setupGimcanaForm() {
     const form = document.getElementById('gimcanaForm');
+    if (!form) return;
     
-    form.addEventListener('submit', function(e) {
+    form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const formData = new FormData(this);
+        const maxGroups = parseInt(formData.get('max_groups'));
+        const maxUsersPerGroup = parseInt(formData.get('max_users_per_group'));
+
+        // Validar que los valores son números válidos
+        if (isNaN(maxGroups) || maxGroups <= 0) {
+            showError('El número máximo de grupos debe ser un número positivo');
+            return;
+        }
+
+        if (isNaN(maxUsersPerGroup) || maxUsersPerGroup <= 0) {
+            showError('El número máximo de usuarios por grupo debe ser un número positivo');
+            return;
+        }
+
         const data = {
             name: formData.get('name'),
-            description: formData.get('description')
+            description: formData.get('description'),
+            max_groups: maxGroups,
+            max_users_per_group: maxUsersPerGroup
         };
         
-        fetch('/gimcanas', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
+        try {
+            const response = await fetch('/gimcanas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify(data)
+            });
+
             if (!response.ok) {
-                return response.json().then(err => {
-                    throw new Error(err.message || 'Error al crear la gimcana');
-                });
+                const error = await response.json();
+                throw new Error(error.message || 'Error al crear la gimcana');
             }
-            return response.json();
-        })
-        .then(gimcana => {
-            alert('Gimcana creada con éxito');
+
+            const gimcana = await response.json();
             form.reset();
             loadGimcanas();
             updateGimcanasSelect();
-        })
-        .catch(error => {
+            showSuccess('Gimcana creada exitosamente');
+        } catch (error) {
             console.error('Error:', error);
-            alert(error.message || 'Error al crear la gimcana');
-        });
+            showError(error.message || 'Error al crear la gimcana');
+        }
     });
 }
 
@@ -295,12 +319,19 @@ function setupCheckpointForm() {
     });
 }
 
-function loadPlaces(map, markers) {
-    // Limpiar marcadores existentes
-    markers.forEach(marker => map.removeLayer(marker));
-    markers = [];
+function loadPlaces(map) {
+    // Limpiar marcadores existentes si hay mapa
+    if (map) {
+        markers.forEach(marker => map.removeLayer(marker));
+        markers = [];
+    }
     
-    fetch('/places', {
+    let url = '/places';
+    if (selectedTags.length > 0) {
+        url += `?tag_id=${selectedTags[0]}`;
+    }
+    
+    fetch(url, {
         headers: {
             'Accept': 'application/json'
         }
@@ -312,48 +343,57 @@ function loadPlaces(map, markers) {
         return response.json();
     })
     .then(places => {
-        const placesList = document.getElementById('placesList');
-        placesList.innerHTML = '';
+        // Actualizar la lista de lugares
+        const placesList = document.getElementById('places-list');
+        if (placesList) {
+            placesList.innerHTML = '';
+            
+            places.forEach(place => {
+                const placeElement = document.createElement('div');
+                placeElement.className = 'bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow';
+                placeElement.innerHTML = `
+                    <h3 class="font-bold text-lg">${place.name}</h3>
+                    <p class="text-gray-600">${place.address}</p>
+                    <p class="text-sm text-gray-500">Lat: ${place.latitude}, Lng: ${place.longitude}</p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        ${place.tags ? place.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('') : ''}
+                    </div>
+                    <button onclick="deletePlace(${place.id})" class="mt-2 text-red-500 hover:text-red-700">
+                        <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Eliminar
+                    </button>
+                `;
+                placesList.appendChild(placeElement);
+            });
+        }
         
         // Actualizar el select de lugares en el formulario de checkpoints
         const placeSelect = document.getElementById('cp-place');
-        placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
+        if (placeSelect) {
+            placeSelect.innerHTML = '<option value="">Selecciona un lugar</option>';
+            places.forEach(place => {
+                const option = document.createElement('option');
+                option.value = place.id;
+                option.textContent = place.name;
+                placeSelect.appendChild(option);
+            });
+        }
         
-        places.forEach(place => {
-            // Añadir al mapa
-            const marker = L.marker([place.latitude, place.longitude])
-                .addTo(map)
-                .bindPopup(place.name);
-            markers.push(marker);
-            
-            // Añadir a la lista
-            const placeElement = document.createElement('div');
-            placeElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
-            placeElement.innerHTML = `
-                <h3 class="font-bold">${place.name}</h3>
-                <p class="text-gray-600">${place.address}</p>
-                <p class="text-sm text-gray-500">Lat: ${place.latitude}, Lng: ${place.longitude}</p>
-                <div class="mt-2">
-                    <button onclick="editPlace(${place.id})" class="bg-yellow-500 text-white py-1 px-3 rounded-lg hover:bg-yellow-600">Editar</button>
-                    <button onclick="deletePlace(${place.id})" class="bg-red-500 text-white py-1 px-3 rounded-lg hover:bg-red-600">Eliminar</button>
-                </div>
-            `;
-            placesList.appendChild(placeElement);
-            
-            // Añadir al select
-            const option = document.createElement('option');
-            option.value = place.id;
-            option.textContent = place.name;
-            placeSelect.appendChild(option);
-        });
+        // Actualizar marcadores en el mapa si existe
+        if (map) {
+            places.forEach(place => {
+                const marker = L.marker([place.latitude, place.longitude])
+                    .addTo(map)
+                    .bindPopup(place.name);
+                markers.push(marker);
+            });
+        }
     })
     .catch(error => {
         console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error al cargar los lugares',
-            text: error.message
-        });
+        showError('Error al cargar los lugares');
     });
 }
 
@@ -371,28 +411,33 @@ function loadGimcanas() {
     })
     .then(gimcanas => {
         const gimcanasList = document.getElementById('gimcanasList');
+        if (!gimcanasList) return;
         gimcanasList.innerHTML = '';
         
         gimcanas.forEach(gimcana => {
             const gimcanaElement = document.createElement('div');
-            gimcanaElement.className = 'p-4 border rounded-lg hover:bg-gray-50';
+            gimcanaElement.className = 'bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow';
             gimcanaElement.innerHTML = `
-                <h3 class="font-bold">${gimcana.name}</h3>
+                <h3 class="font-bold text-lg">${gimcana.name}</h3>
                 <p class="text-gray-600">${gimcana.description}</p>
-                <div class="mt-2">
-                    <button onclick="deleteGimcana(${gimcana.id})" class="text-red-500 hover:text-red-700">
-                        Eliminar
-                    </button>
-                    <button onclick="openEditGimcanaModal(${gimcana.id})" class="text-blue-500 hover:text-blue-700 ml-2">
-                        Editar
-                    </button>
+                <div class="mt-2 text-sm text-gray-500">
+                    <p>Máximo de grupos: ${gimcana.max_groups}</p>
+                    <p>Máximo de usuarios por grupo: ${gimcana.max_users_per_group}</p>
+                    <p>Estado: ${gimcana.status}</p>
                 </div>
+                <button onclick="deleteGimcana(${gimcana.id})" class="mt-2 text-red-500 hover:text-red-700">
+                    <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Eliminar
+                </button>
             `;
             gimcanasList.appendChild(gimcanaElement);
         });
     })
     .catch(error => {
         console.error('Error:', error);
+        showError('Error al cargar las gimcanas');
     });
 }
 
@@ -468,200 +513,212 @@ async function loadCheckpoints() {
     }
 }
 
-function editPlace(id) {
-    fetch(`/places/${id}`)
-        .then(response => response.json())
-        .then(place => {
-            document.getElementById('edit-id').value = place.id;
-            document.getElementById('edit-name').value = place.name;
-            document.getElementById('edit-address').value = place.address;
-            document.getElementById('edit-latitude').value = place.latitude;
-            document.getElementById('edit-longitude').value = place.longitude;
-            document.getElementById('edit-icon').value = place.icon;
-
-            // Limpiar los tags seleccionados
-            const tagsContainer = document.getElementById('edit-tags-container');
-            tagsContainer.innerHTML = '';
-
-            // Añadir los tags asociados al lugar
-            place.tags.forEach(tag => {
-                const chip = document.createElement('div');
-                chip.className = 'chip';
-                chip.innerHTML = `
-                    ${tag.name}
-                    <span class="chip-remove" onclick="removeTag(${tag.id}, 'edit')">×</span>
-                `;
-                chip.dataset.id = tag.id;
-                tagsContainer.appendChild(chip);
-            });
-
-            // Cargar todos los tags disponibles
-            fetch('/api/tags')
-                .then(response => response.json())
-                .then(tags => {
-                    const tagsDropdown = document.getElementById('edit-tags-dropdown');
-                    tagsDropdown.innerHTML = '';
-
-                    tags.forEach(tag => {
-                        const option = document.createElement('div');
-                        option.className = 'tag-option';
-                        option.textContent = tag.name;
-                        option.dataset.id = tag.id;
-                        option.addEventListener('click', () => addTag(tag.id, tag.name, 'edit'));
-                        tagsDropdown.appendChild(option);
-                    });
-                });
-
-            document.getElementById('editModal').classList.remove('hidden');
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al cargar el lugar');
-        });
-}
-
-function closeEditModal() {
-    document.getElementById('editModal').classList.add('hidden');
-}
-
-document.getElementById('editPlaceForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData(this);
-    const tags = Array.from(document.querySelectorAll('#edit-tags-container .chip')).map(chip => parseInt(chip.dataset.id));
-
-    const data = {
-        id: formData.get('id'),
-        name: formData.get('name'),
-        address: formData.get('address'),
-        latitude: formData.get('latitude'),
-        longitude: formData.get('longitude'),
-        icon: formData.get('icon'),
-        tags: tags
-    };
-
-    fetch(`/places/${data.id}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => {
-        if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || 'Error al actualizar el lugar');
-            });
-        }
-        return response.json();
-    })
-    .then(place => {
-        Swal.fire({
-            icon: 'success',
-            title: 'Lugar actualizado con éxito',
-            showConfirmButton: false,
-            timer: 1500
-        });
-        closeEditModal();
-        loadPlaces(map, markers);
-    })
-    .catch(error => {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error al actualizar el lugar',
-            text: error.message
-        });
-    });
-});
-
-function addTag(id, name, context = 'create') {
-    const tagsContainer = document.getElementById(`${context}-tags-container`);
-    const chip = document.createElement('div');
-    chip.className = 'chip';
-    chip.innerHTML = `
-        ${name}
-        <span class="chip-remove" onclick="removeTag(${id}, '${context}')">×</span>
-    `;
-    chip.dataset.id = id;
-    tagsContainer.appendChild(chip);
-}
-
-function removeTag(id, context = 'create') {
-    const chip = document.querySelector(`#${context}-tags-container .chip[data-id="${id}"]`);
-    if (chip) {
-        chip.remove();
+// Función para cargar todas las etiquetas
+async function loadTags() {
+    try {
+        const response = await fetch('/tags');
+        if (!response.ok) throw new Error('Error loading tags');
+        window.allTags = await response.json();
+        updateTagsUI();
+        updateTagsList();
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Error al cargar las etiquetas');
     }
 }
 
-document.getElementById('edit-tags-input').addEventListener('focus', function() {
-    document.getElementById('edit-tags-dropdown').classList.remove('hidden');
-});
+// Función para actualizar la UI de etiquetas en el filtro de lugares
+function updateTagsUI() {
+    const tagContainer = document.getElementById('tag-container');
+    if (!tagContainer) return;
 
-document.getElementById('edit-tags-input').addEventListener('blur', function() {
-    setTimeout(() => {
-        document.getElementById('edit-tags-dropdown').classList.add('hidden');
-    }, 200);
-});
+    tagContainer.innerHTML = '';
+    window.allTags.forEach(tag => {
+        const tagElement = document.createElement('div');
+        tagElement.className = `tag ${window.selectedTags.includes(tag.id) ? 'selected' : ''}`;
+        tagElement.textContent = tag.name;
+        tagElement.onclick = () => toggleFilterTag(tag.id);
+        tagContainer.appendChild(tagElement);
+    });
 
-function deleteGimcana(gimcanaId) {
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: "¡No podrás revertir esto!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/gimcanas/${gimcanaId}`, {
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        throw new Error(err.error || 'Error al eliminar la gimcana');
-                    });
-                }
-                return response.json();
-            })
-            .then(() => {
-                Swal.fire(
-                    '¡Eliminado!',
-                    'La gimcana ha sido eliminada.',
-                    'success'
-                );
-                loadGimcanas();
-            })
-            .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error al eliminar la gimcana',
-                    text: error.message
-                });
-            });
-        }
+    // Actualizar también las etiquetas disponibles para lugares
+    updatePlaceTagsUI();
+}
+
+// Función para actualizar la UI de etiquetas en el formulario de lugares
+function updatePlaceTagsUI() {
+    const placeTagsContainer = document.getElementById('place-tags-container');
+    if (!placeTagsContainer) return;
+
+    placeTagsContainer.innerHTML = '';
+    window.allTags.forEach(tag => {
+        const tagElement = document.createElement('div');
+        tagElement.className = `tag ${window.placeSelectedTags.includes(tag.id) ? 'selected' : ''}`;
+        tagElement.textContent = tag.name;
+        tagElement.onclick = () => togglePlaceTag(tag.id);
+        placeTagsContainer.appendChild(tagElement);
     });
 }
 
-function openEditGimcanaModal(id) {
-    fetch(`/gimcanas/${id}`)
-        .then(response => response.json())
-        .then(gimcana => {
-            document.getElementById('edit-gimcana-id').value = gimcana.id;
-            document.getElementById('edit-gimcana-name').value = gimcana.name;
-            document.getElementById('edit-gimcana-description').value = gimcana.description;
-            document.getElementById('edit-gimcana-max-groups').value = gimcana.max_groups;
-            document.getElementById('edit-gimcana-max-users-per-group').value = gimcana.max_users_per_group;
+// Función para actualizar la lista de etiquetas en la pestaña de etiquetas
+function updateTagsList() {
+    const tagsList = document.getElementById('tags-list');
+    if (!tagsList) return;
 
-            document.getElementById('editGimcanaModal').classList.remove('hidden');
-        })
-        .catch(error => {
+    tagsList.innerHTML = '';
+    window.allTags.forEach(tag => {
+        const tagElement = document.createElement('div');
+        tagElement.className = 'p-4 bg-gray-50 rounded-lg';
+        tagElement.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <h4 class="font-semibold">${tag.name}</h4>
+                    <p class="text-sm text-gray-600">Lugares: ${tag.places_count || 0}</p>
+                </div>
+                <button onclick="deleteTag(${tag.id})" class="text-red-500 hover:text-red-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        `;
+        tagsList.appendChild(tagElement);
+    });
+}
+
+// Función para alternar etiquetas en el filtro
+function toggleFilterTag(tagId) {
+    const index = window.selectedTags.indexOf(tagId);
+    if (index === -1) {
+        window.selectedTags = [tagId]; // Solo permitimos una etiqueta para filtrar
+    } else {
+        window.selectedTags = [];
+    }
+    updateTagsUI();
+    loadPlaces(); // Recargar lugares con el filtro de etiquetas
+}
+
+// Función para alternar etiquetas en el lugar
+function togglePlaceTag(tagId) {
+    const index = window.placeSelectedTags.indexOf(tagId);
+    if (index === -1) {
+        window.placeSelectedTags.push(tagId);
+    } else {
+        window.placeSelectedTags.splice(index, 1);
+    }
+    updatePlaceTagsUI();
+}
+
+// Función para crear nueva etiqueta
+async function createNewTag() {
+    const input = document.getElementById('new-tag-input');
+    const name = input.value.trim();
+    
+    if (name) {
+        try {
+            const response = await fetch('/tags', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({ name })
+            });
+
+            if (!response.ok) throw new Error('Error creating tag');
+            const newTag = await response.json();
+            window.allTags.push(newTag);
+            updateTagsUI();
+            updateTagsList();
+            input.value = '';
+            showSuccess('Etiqueta creada exitosamente');
+        } catch (error) {
             console.error('Error:', error);
-            alert('Error al cargar la gimcana');
+            showError('Error al crear la etiqueta');
+        }
+    } else {
+        showError('El nombre de la etiqueta no puede estar vacío');
+    }
+}
+
+// Función para eliminar una etiqueta
+async function deleteTag(tagId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta etiqueta?')) return;
+
+    try {
+        const response = await fetch(`/tags/${tagId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
         });
+
+        if (!response.ok) throw new Error('Error deleting tag');
+        
+        window.allTags = window.allTags.filter(tag => tag.id !== tagId);
+        window.selectedTags = window.selectedTags.filter(id => id !== tagId);
+        window.placeSelectedTags = window.placeSelectedTags.filter(id => id !== tagId);
+        
+        updateTagsUI();
+        updateTagsList();
+        showSuccess('Etiqueta eliminada exitosamente');
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Error al eliminar la etiqueta');
+    }
+}
+
+// Función para eliminar un lugar
+async function deletePlace(placeId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este lugar?')) return;
+
+    try {
+        const response = await fetch(`/places/${placeId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        });
+
+        if (!response.ok) throw new Error('Error deleting place');
+        
+        loadPlaces(window.map);
+        showSuccess('Lugar eliminado exitosamente');
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Error al eliminar el lugar');
+    }
+}
+
+// Función para eliminar una gimcana
+async function deleteGimcana(gimcanaId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar esta gimcana?')) return;
+
+    try {
+        const response = await fetch(`/gimcanas/${gimcanaId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        });
+
+        if (!response.ok) throw new Error('Error deleting gimcana');
+        
+        loadGimcanas();
+        showSuccess('Gimcana eliminada exitosamente');
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Error al eliminar la gimcana');
+    }
+}
+
+// Funciones de notificación
+function showSuccess(message) {
+    // Por ahora usamos alert, pero podrías usar una librería de notificaciones más elegante
+    alert('✅ ' + message);
+}
+
+function showError(message) {
+    // Por ahora usamos alert, pero podrías usar una librería de notificaciones más elegante
+    alert('❌ ' + message);
 }

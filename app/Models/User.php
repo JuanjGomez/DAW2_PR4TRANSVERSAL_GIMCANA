@@ -72,7 +72,7 @@ class User extends Authenticatable
 
     public function favoritePlaces()
     {
-        return $this->belongsToMany(Place::class, 'user_favorite')
+        return $this->belongsToMany(Place::class, 'favorite_places')
                     ->withTimestamps();
     }
 }
