@@ -97,15 +97,16 @@ let favoritePlaces = new Set(); // Almacenará los IDs de los lugares favoritos
 let userPosition = null;
 let maxDistance = 5; // Distancia máxima en kilómetros
 let isFilteringByDistance = false;
+let currentGroupId = null;
 
 // Función para calcular la distancia entre dos puntos en kilómetros
 function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Radio de la Tierra en km
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
+    const a =
         Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
         Math.sin(dLon/2) * Math.sin(dLon/2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
@@ -130,7 +131,7 @@ async function loadPlaces() {
                 }
             });
         }
-        
+
         if (!response.ok) {
             if (response.status === 401) {
                 window.location.href = '/login';
@@ -138,7 +139,7 @@ async function loadPlaces() {
             }
             throw new Error('Error al cargar los lugares');
         }
-        
+
         const data = await response.json();
         places = data;
         places = places.map(place => ({
@@ -164,7 +165,7 @@ async function loadTags() {
                 'X-Requested-With': 'XMLHttpRequest'
             }
         });
-        
+
         if (!response.ok) {
             if (response.status === 401) {
                 window.location.href = '/login';
@@ -172,7 +173,7 @@ async function loadTags() {
             }
             throw new Error('Error al cargar los tags');
         }
-        
+
         const tags = await response.json();
         console.log('Tags cargados:', tags);
         const tagsList = document.getElementById('tagsList');
@@ -181,18 +182,18 @@ async function loadTags() {
             tagsList.innerHTML = '';
             // Limpiar los tags seleccionados
             selectedTags.clear();
-            
+
             // Crear un Set para evitar duplicados
             const uniqueTags = new Set();
-            
+
             // Ordenar los tags por ID para mantener un orden consistente
             const sortedTags = [...tags].sort((a, b) => a.id - b.id);
-            
+
             sortedTags.forEach(tag => {
                 if (!uniqueTags.has(tag.id)) {
                     uniqueTags.add(tag.id);
                     const tagElement = document.createElement('div');
-                    tagElement.className = `tag-chip ${selectedTags.has(tag.id) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} 
+                    tagElement.className = `tag-chip ${selectedTags.has(tag.id) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}
                         px-4 py-2 rounded-full cursor-pointer transition-colors duration-200`;
                     tagElement.dataset.id = tag.id;
                     tagElement.textContent = tag.name;
@@ -242,11 +243,11 @@ function updateMapMarkers() {
     filteredPlaces.forEach(place => {
         const marker = L.marker([place.latitude, place.longitude]).addTo(map);
         marker.bindPopup(`<b>${place.name}</b><br>${place.address}`);
-        
+
         marker.on('click', () => {
             showPlaceDetails(place);
         });
-        
+
         markers.push(marker);
     });
 }
@@ -255,7 +256,7 @@ function updateMapMarkers() {
 function showFavorites() {
     // Filtrar los lugares favoritos
     const favoritePlacesList = places.filter(place => favoritePlaces.has(place.id));
-    
+
     // Limpiar marcadores existentes
     markers.forEach(marker => map.removeLayer(marker));
     markers = [];
@@ -264,12 +265,12 @@ function showFavorites() {
     favoritePlacesList.forEach(place => {
         const marker = L.marker([place.latitude, place.longitude]).addTo(map);
         marker.bindPopup(`<b>${place.name}</b><br>${place.address}`);
-        
+
         // Agregar evento click al marcador
         marker.on('click', () => {
             showPlaceDetails(place, true); // true indica que es un lugar favorito
         });
-        
+
         markers.push(marker);
     });
 
@@ -284,16 +285,16 @@ function showFavorites() {
 // Función para mostrar los detalles del lugar
 function showPlaceDetails(place, isFavorite = false) {
     console.log('Mostrando detalles del lugar:', place);
-    
+
     // Actualizar el contenido del modal
     document.getElementById('placeName').textContent = place.name;
     document.getElementById('placeAddress').textContent = place.address;
     document.getElementById('placeDescription').textContent = place.description || 'Sin descripción';
-    
+
     // Obtener los botones del modal
     const closeBtn = document.getElementById('closePlaceModal');
     const actionBtn = document.getElementById('addToFavorites');
-    
+
     if (isFavorite) {
         // Si es un lugar favorito, cambiar el botón a "Eliminar"
         actionBtn.textContent = 'Eliminar de favoritos';
@@ -308,7 +309,7 @@ function showPlaceDetails(place, isFavorite = false) {
         actionBtn.disabled = favoritePlaces.has(place.id);
         actionBtn.onclick = () => addPlaceToFavorites(place.id);
     }
-    
+
     // Mostrar el modal
     const modal = document.getElementById('placeDetailsModal');
     modal.classList.remove('hidden');
@@ -323,7 +324,7 @@ async function loadFavoritePlaces() {
                 'X-Requested-With': 'XMLHttpRequest'
             }
         });
-        
+
         if (!response.ok) {
             if (response.status === 401) {
                 window.location.href = '/login';
@@ -331,7 +332,7 @@ async function loadFavoritePlaces() {
             }
             throw new Error('Error al cargar los lugares favoritos');
         }
-        
+
         const data = await response.json();
         favoritePlaces = new Set(data.map(place => place.id));
         updateFavoritesButton();
@@ -368,14 +369,14 @@ async function addPlaceToFavorites(placeId) {
 
         favoritePlaces.add(placeId);
         updateFavoritesButton();
-        
+
         Swal.fire({
             icon: 'success',
             title: '¡Añadido a favoritos!',
             showConfirmButton: false,
             timer: 1500
         });
-        
+
         // Actualizar el botón en el modal
         const addToFavoritesBtn = document.getElementById('addToFavorites');
         if (addToFavoritesBtn) {
@@ -412,16 +413,16 @@ async function removeFromFavorites(placeId) {
 
         favoritePlaces.delete(placeId);
         updateFavoritesButton();
-        
+
         // Cerrar el modal
         document.getElementById('placeDetailsModal').classList.add('hidden');
-        
+
         // Actualizar los marcadores si estamos en la vista de favoritos
         const favoritesBtn = document.getElementById('favoritesBtn');
         if (favoritesBtn && favoritesBtn.classList.contains('bg-blue-500')) {
             showFavorites();
         }
-        
+
         Swal.fire({
             icon: 'success',
             title: '¡Eliminado de favoritos!',
@@ -452,7 +453,7 @@ document.getElementById('filtrosBtn').addEventListener('click', () => {
     const filtersSection = document.getElementById('filtersSection');
     const isHidden = filtersSection.classList.contains('hidden');
     filtersSection.classList.toggle('hidden');
-    
+
     if (!isHidden) {
         // Si estamos cerrando los filtros, limpiar los tags seleccionados
         selectedTags.clear();
@@ -521,14 +522,14 @@ function clearCache() {
     places = [];
     markers.forEach(marker => map.removeLayer(marker));
     markers = [];
-    
+
     // Recargar los lugares
     loadPlaces();
-    
+
     // Limpiar la caché de tags
     selectedTags.clear();
     loadTags();
-    
+
     // Limpiar la caché de lugares favoritos
     favoritePlaces.clear();
     loadFavoritePlaces();
@@ -659,45 +660,43 @@ function joinGroup(grupoId) {
     })
     .then(response => response.json())
     .then(data => {
-        if(data.success) {
-            Swal.fire({
-                title: 'Ya estás en el grupo',
-                icon: 'info',
-                confirmButtonText: 'OK'
-            }).then(() => {
-                const modalContent = document.getElementById('gimcanaDetailsContent')
-                modalContent.innerHTML = `
+        if (data.success) {
+            currentGroupId = grupoId; // Almacena el ID del grupo actual
+            const gimcanaModal = document.getElementById('gimcanaDetailsModal');
+            const groupModal = document.getElementById('groupDetailsModal');
+            const groupContent = document.getElementById('groupDetailsContent');
+
+            if (data.group && data.group.name) {
+                groupContent.innerHTML = `
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-2xl font-bold">Grupo: ${data.group.name}</h2>
-                        <button id="closeMembersModal" class="text-red-500 hover:text-red-700 text-2xl font-bold">&times;</button>
                     </div>
                     <h3 class="text-xl font-bold mt-4">Miembros:</h3>
                     <ul>
                         ${data.group.members.map(member => `<li>${member.name}</li>`).join('')}
                     </ul>
                 `;
-                document.getElementById('gimcanaDetailsModal').classList.remove('hidden')
+                gimcanaModal.classList.add('hidden');
+                groupModal.classList.remove('hidden');
 
-                document.getElementById('closeMembersModal').addEventListener('click', function() {
-                    Swal.fire({
-                        title: '¿Estás seguro de salir del grupo?',
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'Sí, salir',
-                        cancelButtonText: 'Cancelar'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            leaveGroup(grupoId) // Asegúrate de tener el grupoId disponible
-                        }
-                    })
-                })
-            })
+                // Asegúrate de que el botón existe antes de agregar el evento
+                const closeButton = document.getElementById('closeGroupDetailsModal');
+                if (closeButton) {
+                    closeButton.addEventListener('click', () => {
+                        groupModal.classList.add('hidden');
+                    });
+                } else {
+                    console.error('El botón closeGroupDetailsModal no existe');
+                }
+            } else {
+                console.error('El objeto group no está definido o no tiene la propiedad name');
+            }
         } else {
             Swal.fire({
                 title: 'Error al unirte al grupo',
                 text: data.message,
                 icon: 'error'
-            })
+            });
         }
     })
     .catch(error => console.error('Error al unirte al grupo:', error))
@@ -747,3 +746,52 @@ function leaveGroup(grupoId) {
     })
     .catch(error => console.error('Error al salir del grupo:', error))
 }
+
+document.getElementById('closeGroupDetailsModal').addEventListener('click', () => {
+    document.getElementById('groupDetailsModal').classList.add('hidden');
+});
+
+function updateGroupDetails(groupId) {
+    fetch(`/api/group/${groupId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(group => {
+            const groupContent = document.getElementById('groupDetailsContent');
+            groupContent.innerHTML = `
+                <h2 class="text-2xl font-bold">Grupo: ${group.name}</h2>
+                <h3 class="text-xl font-bold mt-4">Miembros:</h3>
+                <ul>
+                    ${group.members.map(member => `<li>${member.name}</li>`).join('')}
+                </ul>
+            `;
+        })
+        .catch(error => console.error('Error al actualizar los detalles del grupo:', error));
+}
+
+setInterval(() => {
+    if (currentGroupId) {
+        updateGroupDetails(currentGroupId);
+    }
+}, 5000); // Actualiza cada 5 segundos
+
+function checkIfGimcanaReady(gimcanaId) {
+    fetch(`/api/gimcanas/${gimcanaId}/ready`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.ready) {
+                window.location.href = '/map/juego'; // Redirige a la página del juego
+            }
+        })
+        .catch(error => console.error('Error al verificar si la gimcana está lista:', error));
+}
+
+// Llama a esta función periódicamente
+setInterval(() => {
+    if (currentGroupId) {
+        checkIfGimcanaReady(currentGroupId);
+    }
+}, 5000); // Verifica cada 5 segundos

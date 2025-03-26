@@ -136,6 +136,6 @@ class GimcanaController extends Controller
             return response()->json(['ready' => true]);
         }
 
-        return redirect()->back()->with('error', 'Aún hay grupos incompletos.');
+        return response()->json(['ready' => false]);
     }
 }

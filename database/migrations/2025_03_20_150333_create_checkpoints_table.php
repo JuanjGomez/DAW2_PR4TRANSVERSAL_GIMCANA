@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('place_id')->constrained('places');
             $table->foreignId('gimcana_id')->constrained('gimcanas');
-            $table->text('challenge');
+            $table->text('challenge')->nullable();
             $table->text('clue');
             $table->integer('order');
             $table->timestamps();
