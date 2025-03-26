@@ -310,7 +310,7 @@
         <div id="modal-content" class="bg-white p-6 rounded-lg shadow-lg relative">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold">Selecciona una Gimcana</h2>
-                <button id="closeModal" class="text-red-500 hover:text-red-700 text-2xl font-bold">&times;</button>
+                <button id="closeModal" class="text-red-500 hover:text-red-700 text-2xl font-bold">X</button>
             </div>
             <div id="gimcanaList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <!-- Lista de gimcanas se llenará dinámicamente -->
@@ -322,6 +322,16 @@
     <div id="gimcanaDetailsModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center">
         <div id="gimcanaDetailsContent" class="bg-white p-6 rounded-lg shadow-lg">
             <!-- Contenido se llenará dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Modal para detalles del grupo -->
+    <div id="groupDetailsModal" class="hidden">
+            <div class="modal-content">
+                <button id="closeGroupDetailsModal" class="text-red-500 hover:text-red-700 text-2xl font-bold absolute top-2 right-2">&times;</button>
+                <div id="groupDetailsContent">
+                <!-- Contenido del modal -->
+            </div>
         </div>
     </div>
 
@@ -357,7 +367,7 @@
     <div id="map"></div>
 
     <!-- Scripts -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>if (data.group && data.group.name) {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{{ asset('js/toolsUser.js') }}"></script>
 </body>
 </html>
