@@ -15,7 +15,7 @@ class CheckpointController extends Controller
     {
         try {
             $checkpoints = Checkpoint::with(['place', 'gimcana'])->get();
-            
+
             // Para cada checkpoint, obtener sus respuestas
             foreach ($checkpoints as $checkpoint) {
                 $answers = ChallengeAnswer::where('checkpoint_id', $checkpoint->id)->get();
@@ -24,7 +24,7 @@ class CheckpointController extends Controller
                     return $answer->is_correct;
                 });
             }
-            
+
             return response()->json($checkpoints);
         } catch (\Exception $e) {
             Log::error('Error fetching checkpoints: ' . $e->getMessage());
@@ -81,7 +81,7 @@ class CheckpointController extends Controller
 
             // Cargar las relaciones necesarias
             $checkpoint->load(['place', 'gimcana']);
-            
+
             // Añadir las respuestas a la respuesta JSON
             $checkpoint->answers = $request->answers;
             $checkpoint->correct_answer = $request->correct_answer;
@@ -98,16 +98,16 @@ class CheckpointController extends Controller
     {
         try {
             $checkpoint = Checkpoint::with(['place', 'gimcana'])->findOrFail($id);
-            
+
             // Obtener las respuestas
             $answers = ChallengeAnswer::where('checkpoint_id', $id)->get();
-            
+
             // Preparar las respuestas para la respuesta JSON
             $checkpoint->answers = $answers->pluck('answer')->toArray();
             $checkpoint->correct_answer = $answers->search(function ($answer) {
                 return $answer->is_correct;
             });
-            
+
             return response()->json($checkpoint);
         } catch (\ModelNotFoundException $e) {
             return response()->json(['error' => 'No se encontró el punto de control'], 404);
@@ -177,7 +177,7 @@ class CheckpointController extends Controller
 
             // Cargar las relaciones necesarias
             $checkpoint->load(['place', 'gimcana']);
-            
+
             // Añadir las respuestas a la respuesta JSON
             $checkpoint->answers = $request->answers;
             $checkpoint->correct_answer = $request->correct_answer;
@@ -192,4 +192,4 @@ class CheckpointController extends Controller
             return response()->json(['error' => 'Error al actualizar el punto de control: ' . $e->getMessage()], 500);
         }
     }
-} 
+}

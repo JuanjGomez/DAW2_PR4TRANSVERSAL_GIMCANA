@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Group;
 use App\Models\User;
+use App\Models\UserCheckpoints;
 
 class GroupController extends Controller
 {
@@ -80,5 +81,22 @@ class GroupController extends Controller
             return response()->json(['error' => 'Grupo no encontrado'], 404);
         }
         return response()->json($group);
+    }
+
+    public function checkCheckpointProgress($groupId, $checkpointId)
+    {
+        $group = Group::findOrFail($groupId);
+        $totalMembers = $group->members->count();
+
+        $completedCount = UserCheckpoints::where('group_id', $groupId)
+            ->where('checkpoint_id', $checkpointId)
+            ->where('completed', true)
+            ->count();
+
+        return response()->json([
+            'allCompleted' => $completedCount >= $totalMembers,
+            'completed' => $completedCount,
+            'total' => $totalMembers
+        ]);
     }
 }

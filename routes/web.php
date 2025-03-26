@@ -12,7 +12,7 @@ use App\Http\Controllers\MapController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\FavoritePlaceController;
-
+use App\Http\Controllers\UserCheckpointController;
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
@@ -43,7 +43,12 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/gimcana/create', [GimcanaController::class, 'createGimcana'])->name('gimcana.create')->middleware('auth');
     Route::post('/gimcana/join', [GimcanaController::class, 'joinGimcana'])->name('gimcana.join')->middleware('auth');
     Route::get('/api/gimcanas', [GimcanaController::class, 'getGimcanas'])->name('gimcana.get')->middleware('auth');
-    Route::get('/api/gimcanas/{id}/ready', [GimcanaController::class, 'checkIfGimcanaReady']);
+    Route::get('/api/gimcanas/{id}/ready', [GimcanaController::class, 'checkIfGimcanaReady'])->name('gimcana.ready')->middleware('auth');
+    Route::get('/api/checkpoints', [CheckpointController::class, 'index']);
+    Route::get('/api/checkpoints/{checkpoint}/answers', [CheckpointController::class, 'getAnswers']);
+    Route::post('/api/challenge-answers/verify', [ChallengeAnswerController::class, 'verifyAnswer']);
+    Route::post('/api/user-checkpoints', [UserCheckpointController::class, 'store']);
+    Route::get('/api/group/{group}/checkpoint/{checkpoint}/progress', [GroupController::class, 'checkCheckpointProgress']);
 
     // Rutas para Gimcanas
     Route::get('/gimcanas', [GimcanaController::class, 'index']);

@@ -98,6 +98,7 @@ let userPosition = null;
 let maxDistance = 5; // Distancia máxima en kilómetros
 let isFilteringByDistance = false;
 let currentGroupId = null;
+let currentGimcanaId = null;
 
 // Función para calcular la distancia entre dos puntos en kilómetros
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -654,6 +655,7 @@ function joinGroup(grupoId) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Accept': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
         body: JSON.stringify({group_id: grupoId})
@@ -661,7 +663,8 @@ function joinGroup(grupoId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            currentGroupId = grupoId; // Almacena el ID del grupo actual
+            currentGroupId = grupoId;
+            currentGimcanaId = data.group.gimcana_id;
             const gimcanaModal = document.getElementById('gimcanaDetailsModal');
             const groupModal = document.getElementById('groupDetailsModal');
             const groupContent = document.getElementById('groupDetailsContent');
@@ -779,19 +782,32 @@ setInterval(() => {
 }, 5000); // Actualiza cada 5 segundos
 
 function checkIfGimcanaReady(gimcanaId) {
-    fetch(`/api/gimcanas/${gimcanaId}/ready`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.ready) {
-                window.location.href = '/map/juego'; // Redirige a la página del juego
-            }
-        })
-        .catch(error => console.error('Error al verificar si la gimcana está lista:', error));
+    fetch(`/api/gimcanas/${gimcanaId}/ready`, {
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.ready) {
+            // Guardar el ID de la gimcana antes de redirigir
+            localStorage.setItem('currentGimcanaId', gimcanaId);
+            window.location.href = '/map/juego';
+        }
+    })
+    .catch(error => console.error('Error al verificar si la gimcana está lista:', error));
 }
 
 // Llama a esta función periódicamente
 setInterval(() => {
-    if (currentGroupId) {
-        checkIfGimcanaReady(currentGroupId);
+    if (currentGimcanaId) {
+        checkIfGimcanaReady(currentGimcanaId);
     }
 }, 5000); // Verifica cada 5 segundos
