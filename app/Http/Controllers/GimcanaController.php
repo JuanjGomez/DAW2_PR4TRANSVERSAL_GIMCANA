@@ -130,6 +130,7 @@ class GimcanaController extends Controller
         });
 
         if ($allGroupsFull) {
+            // Comenzar partida
             $gimcana->status = 'active';
             $gimcana->save();
             return response()->json(['ready' => true]);
