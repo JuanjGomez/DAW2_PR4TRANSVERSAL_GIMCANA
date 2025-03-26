@@ -577,44 +577,51 @@
             // Formulario de gimcanas
             document.getElementById('gimcanaForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const formData = new FormData(this);
-
-                const data = {
-                    name: formData.get('name'),
-                    description: formData.get('description'),
-                    max_groups: parseInt(formData.get('max_groups')),
-                    max_users_per_group: parseInt(formData.get('max_users_per_group'))
+                
+                // Obtener los datos del formulario
+                const formData = {
+                    name: document.getElementById('gimcana-name').value,
+                    description: document.getElementById('gimcana-description').value,
+                    max_groups: parseInt(document.getElementById('gimcana-max-groups').value),
+                    max_users_per_group: parseInt(document.getElementById('gimcana-max-users-per-group').value)
                 };
 
+                // Enviar la petición una sola vez
                 fetch('/gimcanas', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'Accept': 'application/json'
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify(formData)
                 })
                 .then(response => {
                     if (!response.ok) {
-                        return response.text().then(text => {
-                            throw new Error(`Error ${response.status}: ${text}`);
+                        return response.json().then(err => {
+                            throw new Error(err.error || err.message || 'Error al crear la gimcana');
                         });
                     }
                     return response.json();
                 })
                 .then(data => {
-                    Swal.fire(
-                        '¡Éxito!',
-                        'La gimcana ha sido añadida correctamente.',
-                        'success'
-                    );
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: 'Gimcana creada correctamente'
+                    });
+                    
+                    // Limpiar el formulario
+                    this.reset();
+                    
+                    // Recargar la lista de gimcanas
                     loadGimcanas();
-                    document.getElementById('gimcanaForm').reset();
                 })
                 .catch(error => {
+                    console.error('Error:', error);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Error al añadir la gimcana',
+                        title: 'Error',
                         text: error.message
                     });
                 });
