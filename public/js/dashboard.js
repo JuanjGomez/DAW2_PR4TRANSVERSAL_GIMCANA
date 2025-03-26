@@ -871,3 +871,4 @@ function loadSavedPlaces() {
             });
         });
 }
+
