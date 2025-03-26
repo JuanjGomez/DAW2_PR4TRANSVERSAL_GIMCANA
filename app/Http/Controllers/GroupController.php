@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Group;
 use App\Models\User;
+use App\Models\UserCheckpoints;
 
 class GroupController extends Controller
 {
@@ -19,6 +20,11 @@ class GroupController extends Controller
             return response()->json(['success' => false, 'message' => 'Grupo no encontrado']);
         }
 
+        // Verificar si el usuario ya está en el grupo
+        if ($group->members->contains('id', $user->id)) {
+            return response()->json(['success' => true, 'message' => 'Ya eres miembro de este grupo']);
+        }
+
         // Verificar si el usuario ya está en cualquier grupo de cualquier gimcana
         $userGroups = Group::whereHas('members', function($query) use ($user) {
             $query->where('user_id', $user->id);
@@ -30,8 +36,12 @@ class GroupController extends Controller
 
         // Agregar al usuario al grupo
         $group->members()->attach($user->id);
-        $group->load('members');
-        return response()->json(['success' => true, 'group' => $group]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Te has unido al grupo',
+            'group' => $group->load('members')
+        ]);
     }
 
     public function checkUserGroupStatus($gimcanaId)
@@ -62,5 +72,31 @@ class GroupController extends Controller
         $group->members()->detach($user->id);
 
         return response()->json(['success' => true, 'message' => 'Has salido del grupo']);
+    }
+
+    public function show($id)
+    {
+        $group = Group::with('members')->find($id);
+        if (!$group) {
+            return response()->json(['error' => 'Grupo no encontrado'], 404);
+        }
+        return response()->json($group);
+    }
+
+    public function checkCheckpointProgress($groupId, $checkpointId)
+    {
+        $group = Group::findOrFail($groupId);
+        $totalMembers = $group->members->count();
+
+        $completedCount = UserCheckpoints::where('group_id', $groupId)
+            ->where('checkpoint_id', $checkpointId)
+            ->where('completed', true)
+            ->count();
+
+        return response()->json([
+            'allCompleted' => $completedCount >= $totalMembers,
+            'completed' => $completedCount,
+            'total' => $totalMembers
+        ]);
     }
 }

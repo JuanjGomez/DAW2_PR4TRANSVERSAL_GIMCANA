@@ -25,6 +25,38 @@
             width: 90%;
             max-width: 500px;
         }
+        .distance-filter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 250px;
+            transform: translateX(calc(100% + 20px));
+        }
+        .distance-filter h3 {
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .distance-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .clear-filter {
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .clear-filter:hover {
+            background-color: #dc2626;
+        }
         .filters-card {
             background-color: white;
             border-radius: 16px;
@@ -55,29 +87,34 @@
         }
         .map-buttons-container {
             position: absolute;
-            top: 0px; /* Moved lower */
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 1000;
+            z-index: 1001;
             width: 100%;
             max-width: 600px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding: 0 15px;
         }
         .map-buttons {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
         .map-button {
             background-color: #1f2937;
             color: white;
-            padding: 10px 20px;
+            padding: 8px 16px;
             border-radius: 8px;
             font-weight: 500;
             cursor: pointer;
             transition: background-color 0.3s;
+            font-size: 14px;
+            white-space: nowrap;
         }
         .map-button:hover {
             background-color: #374151;
@@ -89,7 +126,10 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 15px;
-            margin-top: 10px;
+            margin-top: 80px;
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
         }
         .important {
             background-color: darkred;
@@ -113,11 +153,13 @@
         .tag-chip {
             background-color: #f3f4f6;
             color: #4b5563;
-            padding: 8px 12px;
+            padding: 6px 12px;
             border-radius: 9999px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 14px;
+            white-space: nowrap;
         }
         .tag-chip:hover {
             background-color: #e5e7eb;
@@ -143,7 +185,89 @@
             display: none !important;
         }
         #placeDetailsModal {
-            z-index: 10000; /* Asegúrate de que sea mayor que otros elementos */
+            z-index: 10000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            z-index: 10001;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+        }
+        /* Media queries para dispositivos móviles */
+        @media (max-width: 768px) {
+            .map-buttons-container {
+                top: 10px;
+            }
+            .map-button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+            .distance-filter {
+                position: fixed;
+                top: auto;
+                bottom: 20px;
+                right: 20px;
+                width: 200px;
+                padding: 10px;
+                z-index: 1002;
+                transform: none;
+            }
+            #filtersSection {
+                margin-top: 60px;
+                padding: 10px;
+                z-index: 1001;
+            }
+            .tag-chip {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+            .modal-content {
+                width: 95%;
+                margin: 10px;
+                padding: 15px;
+            }
+        }
+        /* Media queries para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .map-buttons {
+                gap: 4px;
+            }
+            .map-button {
+                padding: 4px 8px;
+                font-size: 11px;
+            }
+            .distance-filter {
+                width: 180px;
+                padding: 8px;
+            }
+            .distance-filter h3 {
+                font-size: 14px;
+            }
+            .clear-filter {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -154,6 +278,7 @@
         <div class="map-buttons">
             <button id="lobbiesBtn" class="map-button">Gimcanas</button>
             <button id="filtrosBtn" class="map-button">Filtros</button>
+            <button id="favoritesBtn" class="map-button" onclick="showFavorites()">Favoritos (0)</button>
             <form action="{{ route('logout') }}" method="POST" class="logout-form">
                 @csrf
                 <button type="submit" class="important">
@@ -164,14 +289,18 @@
 
         <!-- Sección de filtros (ahora debajo de los botones) -->
         <div id="filtersSection" class="hidden">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold">Filtrar por Tags</h2>
-            </div>
-            <div id="tagsList" class="flex flex-wrap gap-2">
-                <!-- Los tags se cargarán dinámicamente aquí como "chips" -->
-            </div>
-            <div class="mt-4">
-                <button id="applyFilters" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Aplicar Filtros</button>
+            <div class="filters-card">
+                <h3>Filtrar por Tags</h3>
+                <div id="tagsList" class="tags-grid">
+                    <!-- Los tags se cargarán dinámicamente aquí como "chips" -->
+                </div>
+                <h3>Filtro por Distancia</h3>
+                <div class="distance-controls">
+                    <label for="distanceSlider">Distancia máxima: <span id="distanceValue">5</span> km</label>
+                    <input type="range" id="distanceSlider" min="0.5" max="20" step="0.5" value="5">
+                </div>
+                <button id="clearDistanceFilter" class="clear-filter">Limpiar Filtro</button>
+                <button id="applyFilters" class="apply-filters-btn">Aplicar Filtros</button>
             </div>
         </div>
     </div>
@@ -197,8 +326,9 @@
     </div>
 
     <!-- Modal para detalles del lugar -->
-    <div id="placeDetailsModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center" inert>
-        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+    <div id="placeDetailsModal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
             <h2 id="placeName" class="text-xl font-bold mb-2"></h2>
             <p id="placeAddress" class="text-gray-600 mb-4"></p>
             <p id="placeDescription" class="text-gray-600 mb-4"></p>
@@ -209,241 +339,25 @@
         </div>
     </div>
 
+    <!-- Modal para lugares favoritos -->
+    <div id="favoritesModal" class="hidden">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Mis Lugares Favoritos</h2>
+                <button id="closeFavoritesModal" class="text-gray-500 hover:text-gray-700">&times;</button>
+            </div>
+            <div id="favoritesList" class="space-y-4">
+                <!-- Los lugares favoritos se cargarán dinámicamente aquí -->
+            </div>
+        </div>
+    </div>
+
     <!-- Mapa -->
     <div id="map"></div>
 
     <!-- Scripts -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // Inicializar el mapa
-        const map = L.map('map').setView([41.3851, 2.1734], 13);
-
-        // Añadir capa de OpenStreetMap
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(map);
-
-        // Marcador del usuario
-        let userMarker;
-
-        // Obtener y mostrar la ubicación del usuario
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-
-                    // Si ya existe un marcador, actualizar su posición
-                    if (userMarker) {
-                        userMarker.setLatLng([latitude, longitude]);
-                    } else {
-                        // Crear nuevo marcador circular
-                        userMarker = L.circleMarker([latitude, longitude], {
-                            radius: 10,
-                            fillColor: '#4285F4', // Color azul de Google Maps
-                            color: '#ffffff',     // Borde blanco
-                            weight: 2,            // Grosor del borde
-                            opacity: 1,
-                            fillOpacity: 1
-                        }).addTo(map);
-                        map.setView([latitude, longitude], 15);
-                    }
-                },
-                (error) => {
-                    console.error('Error al obtener la ubicación:', error);
-                },
-                {
-                    enableHighAccuracy: true,
-                    maximumAge: 30000,
-                    timeout: 27000
-                }
-            );
-        }
-
-        // Eventos para los botones
-        document.getElementById('lobbiesBtn').addEventListener('click', () => {
-            // Aquí irá la lógica para abrir el modal de Lobbies
-            console.log('Abrir modal de Lobbies');
-        });
-
-        // Variables globales
-        let places = []; // Almacenará todos los places
-        let markers = []; // Almacenará los marcadores del mapa
-        let selectedTags = new Set(); // Almacenará los tags seleccionados
-
-        // Función para cargar los tags
-        async function loadTags() {
-            console.log('Cargando tags...'); // Mensaje de depuración
-            try {
-                const response = await fetch('/api/tags');
-                console.log('Respuesta recibida:', response); // Mensaje de depuración
-                if (!response.ok) {
-                    throw new Error('Error al cargar los tags');
-                }
-                const tags = await response.json();
-                console.log('Tags cargados:', tags); // Mensaje de depuración
-                const tagsList = document.getElementById('tagsList');
-                tagsList.innerHTML = tags.map(tag => `
-                    <div class="tag-chip ${selectedTags.has(tag.id) ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'} 
-                        px-4 py-2 rounded-full cursor-pointer transition-colors duration-200"
-                        data-id="${tag.id}" onclick="toggleTag(${tag.id})">
-                        ${tag.name}
-                    </div>
-                `).join('');
-                console.log('Tags generados en el DOM:', tagsList.innerHTML); // Mensaje de depuración
-            } catch (error) {
-                console.error('Error cargando tags:', error);
-                alert('Error al cargar los tags. Por favor, inténtalo de nuevo.');
-            }
-        }
-
-        // Función para alternar la selección de un tag
-        function toggleTag(tagId) {
-            if (selectedTags.has(tagId)) {
-                selectedTags.delete(tagId);
-            } else {
-                selectedTags.add(tagId);
-            }
-            // Actualizar la apariencia del chip
-            const tagChip = document.querySelector(`.tag-chip[data-id="${tagId}"]`);
-            if (tagChip) {
-                tagChip.classList.toggle('bg-blue-500');
-                tagChip.classList.toggle('text-white');
-                tagChip.classList.toggle('bg-gray-200');
-                tagChip.classList.toggle('text-gray-700');
-            }
-        }
-
-        // Función para cargar los places
-        async function loadPlaces() {
-            try {
-                const response = await fetch('/api/places');
-                places = await response.json();
-                // Asegurarse de que cada place tenga la propiedad tags
-                places = places.map(place => ({
-                    ...place,
-                    tags: place.tags || [] // Si tags es undefined, se asigna un array vacío
-                }));
-                updateMapMarkers();
-            } catch (error) {
-                console.error('Error cargando places:', error);
-            }
-        }
-
-        // Función para actualizar los marcadores en el mapa
-        function updateMapMarkers() {
-            // Limpiar marcadores existentes
-            markers.forEach(marker => map.removeLayer(marker));
-            markers = [];
-
-            // Filtrar places según los tags seleccionados
-            const filteredPlaces = places.filter(place => {
-                if (selectedTags.size === 0) return true;
-                return place.tags && place.tags.some(tag => selectedTags.has(tag.id));
-            });
-
-            // Añadir marcadores al mapa
-            filteredPlaces.forEach(place => {
-                const marker = L.marker([place.latitude, place.longitude]).addTo(map);
-                marker.bindPopup(`<b>${place.name}</b><br>${place.address}`);
-                
-                // Agregar evento click al marcador
-                marker.on('click', () => {
-                    showPlaceDetails(place);
-                });
-                
-                markers.push(marker);
-            });
-        }
-
-        // Función para mostrar los detalles del lugar
-        function showPlaceDetails(place) {
-            console.log('Mostrando detalles del lugar:', place);
-            
-            // Actualizar el contenido del modal
-            document.getElementById('placeName').textContent = place.name;
-            document.getElementById('placeAddress').textContent = place.address;
-            document.getElementById('placeDescription').textContent = place.description || 'Sin descripción';
-            
-            // Configurar el botón de favoritos
-            const addToFavoritesBtn = document.getElementById('addToFavorites');
-            addToFavoritesBtn.onclick = () => addPlaceToFavorites(place.id);
-            
-            // Mostrar el modal
-            const modal = document.getElementById('placeDetailsModal');
-            modal.classList.remove('hidden');
-            
-            // Verificar si el modal se está mostrando
-            console.log('Modal visibility:', modal.classList.contains('hidden') ? 'hidden' : 'visible');
-        }
-
-        // Función para añadir un lugar a favoritos
-        async function addPlaceToFavorites(placeId) {
-            try {
-                const response = await fetch('/api/favorite-places', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify({ place_id: placeId })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Error al añadir a favoritos');
-                }
-
-                const data = await response.json();
-                
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Añadido a favoritos!',
-                    showConfirmButton: false,
-                    timer: 1500
-                });
-                
-                // Deshabilitar el botón después de añadir a favoritos
-                const addToFavoritesBtn = document.getElementById('addToFavorites');
-                addToFavoritesBtn.disabled = true;
-                addToFavoritesBtn.textContent = 'En favoritos';
-                addToFavoritesBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
-                addToFavoritesBtn.classList.add('bg-green-500', 'cursor-not-allowed');
-                
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: error.message
-                });
-            }
-        }
-
-        // Cerrar el modal de detalles
-        document.getElementById('closePlaceModal').addEventListener('click', (e) => {
-            e.preventDefault();
-            const modal = document.getElementById('placeDetailsModal');
-            modal.classList.add('hidden');
-            modal.removeAttribute('inert'); // Asegurarse de que el modal sea interactivo
-        });
-
-        // Evento para abrir/cerrar la sección de filtros
-        document.getElementById('filtrosBtn').addEventListener('click', () => {
-            const filtersSection = document.getElementById('filtersSection');
-            filtersSection.classList.toggle('hidden');
-            if (!filtersSection.classList.contains('hidden')) {
-                loadTags();
-            }
-        });
-
-        // Evento para aplicar los filtros
-        document.getElementById('applyFilters').addEventListener('click', () => {
-            updateMapMarkers();
-        });
-
-        // Cargar los places al iniciar
-        loadPlaces();
-    </script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>if (data.group && data.group.name) {
     <script src="{{ asset('js/toolsUser.js') }}"></script>
 </body>
 </html>

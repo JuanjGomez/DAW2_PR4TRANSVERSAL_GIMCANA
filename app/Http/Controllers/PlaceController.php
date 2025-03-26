@@ -7,27 +7,42 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class PlaceController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        try {
-            $query = Place::with('tags');
+        // Cache por 5 minutos
+        $places = Cache::remember('places.all', 300, function () {
+            return Place::with('tags')->get();
+        });
 
-            // Filtrar por etiqueta si se proporciona
-            if ($request->has('tag_id')) {
-                $query->whereHas('tags', function($q) use ($request) {
-                    $q->where('tags.id', $request->tag_id);
-                });
-            }
+        return response()->json($places);
+    }
 
-            $places = $query->get();
-            return response()->json($places);
-        } catch (\Exception $e) {
-            Log::error('Error fetching places: ' . $e->getMessage());
-            return response()->json(['error' => 'Error fetching places'], 500);
-        }
+    public function getPlacesByDistance(Request $request)
+    {
+        $latitude = $request->input('latitude');
+        $longitude = $request->input('longitude');
+        $distance = $request->input('distance', 5); // Distancia en km
+
+        $cacheKey = "places.distance.{$latitude}.{$longitude}.{$distance}";
+        
+        $places = Cache::remember($cacheKey, 60, function () use ($latitude, $longitude, $distance) {
+            return Place::with('tags')
+                ->selectRaw("
+                    places.*,
+                    (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians(?)) + sin(radians(?)) * 
+                    sin(radians(latitude)))) AS distance
+                ", [$latitude, $longitude, $latitude])
+                ->having('distance', '<=', $distance)
+                ->orderBy('distance')
+                ->get();
+        });
+
+        return response()->json($places);
     }
 
     public function store(Request $request)
@@ -43,9 +58,12 @@ class PlaceController extends Controller
                 'tags.*' => 'exists:tags,id'
             ]);
 
-        $place = Place::create($validatedData);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            }
 
-            $place = Place::create($request->except('tags'));
+            $validatedData = $validator->validated();
+            $place = Place::create($validatedData);
 
             // Asignar etiquetas si se proporcionan
             if ($request->has('tags')) {
@@ -57,10 +75,8 @@ class PlaceController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error creating place: ' . $e->getMessage());
-            return response()->json(['error' => 'Error creating place'], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        return response()->json($place->load('tags'), 201);
     }
 
     public function show(Place $place)
