@@ -51,8 +51,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/api/group/{group}/checkpoint/{checkpoint}/progress', [GroupController::class, 'checkCheckpointProgress']);
 
     // Rutas para Gimcanas
-    Route::get('/gimcanas', [GimcanaController::class, 'index']);
-    Route::post('/gimcanas', [GimcanaController::class, 'store']);
+    Route::prefix('gimcanas')->group(function () {
+        Route::get('/', [GimcanaController::class, 'index']);
+        Route::post('/', [GimcanaController::class, 'store']);
+        Route::get('/{gimcana}', [GimcanaController::class, 'show']);
+        Route::put('/{gimcana}', [GimcanaController::class, 'update']);
+        Route::delete('/{gimcana}', [GimcanaController::class, 'destroy']);
+    });
 
     // Rutas para Places
     Route::get('/places', [PlaceController::class, 'index']);
@@ -86,17 +91,6 @@ Route::middleware(['auth'])->group(function () {
 
 Route::middleware(['auth'])->group(function () {
     //Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
-
-    Route::get('/gimcanas', [GimcanaController::class, 'index']);
-    Route::post('/gimcanas', [GimcanaController::class, 'store']);
-    Route::get('/gimcanas/{gimcana}', [GimcanaController::class, 'show']);
-    Route::put('/gimcanas/{gimcana}', [GimcanaController::class, 'update']);
-    Route::delete('/gimcanas/{gimcana}', [GimcanaController::class, 'destroy']);
-
-    Route::get('/places', [PlaceController::class, 'index']);
-    Route::post('/places', [PlaceController::class, 'store']);
-    Route::get('/places/{place}', [PlaceController::class, 'show']);
-    Route::delete('/places/{place}', [PlaceController::class, 'destroy']);
 
     Route::get('/checkpoints', [CheckpointController::class, 'index']);
     Route::post('/checkpoints', [CheckpointController::class, 'store']);

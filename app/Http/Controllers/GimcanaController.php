@@ -25,34 +25,25 @@ class GimcanaController extends Controller
     public function store(Request $request)
     {
         try {
+            // Validar la petición
             $validator = Validator::make($request->all(), [
-                'name' => 'required|string|max:255',
+                'name' => 'required|string|max:255|unique:gimcanas',
                 'description' => 'required|string',
                 'max_groups' => 'required|integer|min:1',
                 'max_users_per_group' => 'required|integer|min:1'
             ]);
 
-        $gimcana = Gimcana::create([
-            'name' => $request->name,
-            'description' => $request->description,
-            'max_groups' => $request->max_groups,
-            'max_users_per_group' => $request->max_users_per_group,
-            'status' => 'waiting' // Por defecto, la gimcana estará en estado 'waiting'
-        ]);
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors()], 422);
+            }
 
-            $gimcana = Gimcana::create([
-                'name' => $request->name,
-                'description' => $request->description,
-                'max_groups' => $request->max_groups,
-                'max_users_per_group' => $request->max_users_per_group
-            ]);
+            // Crear la gimcana
+            $gimcana = Gimcana::create($request->all());
 
-            Log::info('Gimcana created successfully: ' . $gimcana->id);
             return response()->json($gimcana, 201);
-
         } catch (\Exception $e) {
             Log::error('Error creating gimcana: ' . $e->getMessage());
-            return response()->json(['error' => 'Error creating gimcana'], 500);
+            return response()->json(['error' => 'Error al crear la gimcana'], 500);
         }
     }
 
