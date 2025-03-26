@@ -29,4 +29,9 @@ class Checkpoint extends Model
         return $this->belongsTo(Place::class);
     }
 
+    public function answers()
+    {
+        return $this->hasMany(ChallengeAnswer::class);
+    }
+
 }

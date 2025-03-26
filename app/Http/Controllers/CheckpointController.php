@@ -120,11 +120,21 @@ class CheckpointController extends Controller
     public function destroy(Checkpoint $checkpoint)
     {
         try {
+            \DB::beginTransaction();
+            
+            // Primero eliminar todas las respuestas asociadas
+            ChallengeAnswer::where('checkpoint_id', $checkpoint->id)->delete();
+            
+            // Luego eliminar el checkpoint
             $checkpoint->delete();
-            return response()->json(null, 204);
+            
+            \DB::commit();
+            
+            return response()->json(['message' => 'Punto de control eliminado correctamente'], 200);
         } catch (\Exception $e) {
+            \DB::rollBack();
             Log::error('Error deleting checkpoint: ' . $e->getMessage());
-            return response()->json(['error' => 'Error deleting checkpoint'], 500);
+            return response()->json(['error' => 'Error al eliminar el punto de control'], 500);
         }
     }
 
