@@ -130,11 +130,10 @@ class GimcanaController extends Controller
         });
 
         if ($allGroupsFull) {
-            $gimcana->status = 'active';
-            $gimcana->save();
-            return response()->json(['ready' => true]);
+            // Redirigir a la vista del juego
+            return redirect()->route('map.juego');
         }
 
-        return response()->json(['ready' => false]);
+        return redirect()->back()->with('error', 'Aún hay grupos incompletos.');
     }
 }

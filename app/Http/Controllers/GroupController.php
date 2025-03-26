@@ -36,11 +36,7 @@ class GroupController extends Controller
         // Agregar al usuario al grupo
         $group->members()->attach($user->id);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Te has unido al grupo',
-            'group' => $group->load('members')
-        ]);
+        return response()->json(['success' => true, 'message' => 'Te has unido al grupo']);
     }
 
     public function checkUserGroupStatus($gimcanaId)
@@ -71,14 +67,5 @@ class GroupController extends Controller
         $group->members()->detach($user->id);
 
         return response()->json(['success' => true, 'message' => 'Has salido del grupo']);
-    }
-
-    public function show($id)
-    {
-        $group = Group::with('members')->find($id);
-        if (!$group) {
-            return response()->json(['error' => 'Grupo no encontrado'], 404);
-        }
-        return response()->json($group);
     }
 }
