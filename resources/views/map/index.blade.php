@@ -339,6 +339,15 @@
         </div>
     </div>
 
+    <!-- Modal para detalles del grupo -->
+    <div id="groupDetailsModal" class="hidden">
+        <div class="modal-content">
+            <button id="closeGroupDetailsModal" class="text-red-500 hover:text-red-700 text-2xl font-bold absolute top-2 right-2">&times;</button>
+            <div id="groupDetailsContent">
+                <!-- Contenido del modal -->
+            </div>
+        </div>
+    </div>
     <!-- Modal para lugares favoritos -->
     <div id="favoritesModal" class="hidden">
         <div class="modal-overlay"></div>
