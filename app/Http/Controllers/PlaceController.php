@@ -58,9 +58,12 @@ class PlaceController extends Controller
                 'tags.*' => 'exists:tags,id'
             ]);
 
-        $place = Place::create($validatedData);
+            if ($validator->fails()) {
+                return response()->json(['error' => $validator->errors()], 422);
+            }
 
-            $place = Place::create($request->except('tags'));
+            $validatedData = $validator->validated();
+            $place = Place::create($validatedData);
 
             // Asignar etiquetas si se proporcionan
             if ($request->has('tags')) {
@@ -72,10 +75,8 @@ class PlaceController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Error creating place: ' . $e->getMessage());
-            return response()->json(['error' => 'Error creating place'], 500);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        return response()->json($place->load('tags'), 201);
     }
 
     public function show(Place $place)

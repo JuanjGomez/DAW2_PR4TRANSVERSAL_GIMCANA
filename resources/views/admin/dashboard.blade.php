@@ -162,7 +162,9 @@
                 <!-- Lista de lugares -->
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <h2 class="text-xl font-bold mb-4">Lugares Guardados</h2>
-                    <div id="placesList" class="space-y-4"></div>
+                    <div id="saved-places-container" class="mt-6">
+                        <!-- Los lugares se cargarán aquí dinámicamente -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -804,7 +806,7 @@
                 console.log("Lugares cargados:", places.length);
                 
                 // Actualizar la lista de lugares
-                const placesList = document.getElementById('placesList');
+                const placesList = document.getElementById('saved-places-container');
                 if (placesList) {
                     placesList.innerHTML = '';
                     

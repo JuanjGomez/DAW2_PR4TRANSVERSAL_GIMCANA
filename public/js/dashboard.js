@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    loadSavedPlaces();
 });
 
 function showTab(tabName) {
@@ -135,12 +137,22 @@ function setupPlaceForm(map, markers) {
         const data = {
             name: formData.get('name'),
             address: formData.get('address'),
-            latitude: formData.get('latitude'),
-            longitude: formData.get('longitude'),
+            latitude: parseFloat(formData.get('latitude')).toFixed(8),
+            longitude: parseFloat(formData.get('longitude')).toFixed(8),
             icon: formData.get('icon') || 'default-icon'
         };
-        
-        fetch('/places', {
+
+        // Validar datos antes de enviar
+        if (!data.name || !data.address || isNaN(data.latitude) || isNaN(data.longitude)) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Datos incompletos',
+                text: 'Por favor, complete todos los campos correctamente'
+            });
+            return;
+        }
+
+        fetch('/api/places', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -150,14 +162,16 @@ function setupPlaceForm(map, markers) {
             body: JSON.stringify(data)
         })
         .then(response => {
+            console.log('Respuesta completa:', response);
             if (!response.ok) {
                 return response.json().then(err => {
-                    throw new Error(err.message || 'Error al crear el lugar');
+                    throw new Error(`Error ${response.status}: ${JSON.stringify(err)}`);
                 });
             }
             return response.json();
         })
         .then(place => {
+            console.log('Lugar creado:', place);
             Swal.fire({
                 icon: 'success',
                 title: 'Lugar creado con éxito',
@@ -166,8 +180,10 @@ function setupPlaceForm(map, markers) {
             });
             form.reset();
             loadPlaces(map, markers);
+            loadSavedPlaces();
         })
         .catch(error => {
+            console.error('Error completo:', error);
             Swal.fire({
                 icon: 'error',
                 title: 'Error al crear el lugar',
@@ -814,4 +830,44 @@ function deleteCheckpoint(id) {
             alert('Error al eliminar el punto de control');
         });
     }
+}
+
+function loadSavedPlaces() {
+    fetch('/api/places')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar los lugares');
+            }
+            return response.json();
+        })
+        .then(places => {
+            const placesContainer = document.getElementById('saved-places-container');
+            if (!placesContainer) return;
+
+            // Limpiar el contenedor
+            placesContainer.innerHTML = '';
+
+            // Crear y añadir cada lugar
+            places.forEach(place => {
+                const placeElement = document.createElement('div');
+                placeElement.className = 'bg-white p-4 rounded-lg shadow mb-4';
+                placeElement.innerHTML = `
+                    <h3 class="text-lg font-semibold">${place.name}</h3>
+                    <p class="text-gray-600">${place.address}</p>
+                    <div class="mt-2 flex justify-end">
+                        <button onclick="editPlace(${place.id})" class="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600">Editar</button>
+                        <button onclick="deletePlace(${place.id})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Eliminar</button>
+                    </div>
+                `;
+                placesContainer.appendChild(placeElement);
+            });
+        })
+        .catch(error => {
+            console.error('Error cargando lugares:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudieron cargar los lugares guardados'
+            });
+        });
 }
