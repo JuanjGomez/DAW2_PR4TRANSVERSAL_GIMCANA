@@ -73,44 +73,25 @@ function showClue(checkpoint) {
 }
 
 function showChallenge(checkpoint) {
-    if (!checkpoint.challenge) {
-        Swal.fire({
-            title: '¡Felicidades!',
-            text: 'Has llegado al último checkpoint',
-            icon: 'success'
-        });
-        return;
-    }
-
     // Obtener las respuestas del checkpoint
-    fetch(`/api/checkpoints/${checkpoint.id}/answers`)
-        .then(response => response.json())
-        .then(answers => {
-            const answerButtons = answers.map(answer => ({
-                text: answer.answer,
-                value: answer.id
-            }));
+    const answers = checkpoint.answers.map((answer, index) => {
+        return `<button onclick="verifyAnswer(${checkpoint.id}, ${index})" class="answer-button">${answer}</button>`;
+    }).join('');
 
-            Swal.fire({
-                title: checkpoint.challenge,
-                input: 'radio',
-                inputOptions: Object.fromEntries(
-                    answerButtons.map(btn => [btn.value, btn.text])
-                ),
-                showCancelButton: true,
-                confirmButtonText: 'Confirmar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    verifyAnswer(checkpoint.id, result.value);
-                }
-            });
-        });
+    // Mostrar el modal con el desafío y las respuestas
+    Swal.fire({
+        title: 'Desafío',
+        html: `
+            <p>${checkpoint.challenge}</p>
+            <div>${answers}</div>
+        `,
+        showConfirmButton: false
+    });
 }
 
-function verifyAnswer(checkpointId, answerId) {
-    const groupId = localStorage.getItem('currentGroupId');
-
+function verifyAnswer(checkpointId, answerIndex) {
+    // Aquí puedes implementar la lógica para verificar si la respuesta es correcta
+    // Por ejemplo, podrías hacer una llamada a la API para verificar la respuesta
     fetch('/api/challenge-answers/verify', {
         method: 'POST',
         headers: {
@@ -120,17 +101,18 @@ function verifyAnswer(checkpointId, answerId) {
         },
         body: JSON.stringify({
             checkpoint_id: checkpointId,
-            answer_id: answerId,
-            group_id: groupId
+            answer_id: answerIndex
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.correct) {
-            // Registrar el checkpoint como completado
+            Swal.fire({
+                title: '¡Correcto!',
+                text: 'Has completado el desafío.',
+                icon: 'success'
+            });
             registerCompletedCheckpoint(checkpointId);
-
-            // Verificar si todos los miembros del grupo han completado el checkpoint
             checkGroupProgress(checkpointId);
         } else {
             Swal.fire({
