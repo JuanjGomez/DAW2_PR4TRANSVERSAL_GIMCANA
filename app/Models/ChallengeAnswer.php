@@ -23,4 +23,4 @@ class ChallengeAnswer extends Model
     {
         return $this->belongsTo(Checkpoint::class);
     }
-} 
+}

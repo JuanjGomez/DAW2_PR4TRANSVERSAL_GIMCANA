@@ -158,7 +158,6 @@ async function loadPlaces() {
 
 // Función para cargar los tags
 async function loadTags() {
-    console.log('Cargando tags...');
     try {
         const response = await fetch('/api/tags', {
             headers: {
@@ -663,6 +662,11 @@ function joinGroup(grupoId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Guardar los datos necesarios en localStorage
+            localStorage.setItem('currentGroupId', grupoId);
+            localStorage.setItem('currentGimcanaId', data.group.gimcana_id);
+            localStorage.setItem('userId', data.user.id); // Asegúrate de que el backend envía el user.id
+
             currentGroupId = grupoId;
             currentGimcanaId = data.group.gimcana_id;
             const gimcanaModal = document.getElementById('gimcanaDetailsModal');

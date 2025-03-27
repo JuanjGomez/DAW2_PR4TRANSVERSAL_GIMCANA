@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-
+use Illuminate\Support\Facades\DB;
 class CheckpointController extends Controller
 {
     public function index()
@@ -121,15 +121,15 @@ class CheckpointController extends Controller
     {
         try {
             \DB::beginTransaction();
-            
+
             // Primero eliminar todas las respuestas asociadas
             ChallengeAnswer::where('checkpoint_id', $checkpoint->id)->delete();
-            
+
             // Luego eliminar el checkpoint
             $checkpoint->delete();
-            
+
             \DB::commit();
-            
+
             return response()->json(['message' => 'Punto de control eliminado correctamente'], 200);
         } catch (\Exception $e) {
             \DB::rollBack();
@@ -200,6 +200,33 @@ class CheckpointController extends Controller
         } catch (\Exception $e) {
             Log::error('Error updating checkpoint: ' . $e->getMessage());
             return response()->json(['error' => 'Error al actualizar el punto de control: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function getAnswers($checkpointId)
+    {
+        try {
+            // Verificar que el checkpoint existe
+            $checkpoint = Checkpoint::findOrFail($checkpointId);
+
+            // Obtener las respuestas usando la relación definida en el modelo
+            $answers = ChallengeAnswer::where('checkpoint_id', $checkpointId)
+                ->select('id', 'answer', 'checkpoint_id') // No incluimos is_correct por seguridad
+                ->get();
+
+            Log::info('Obteniendo respuestas para checkpoint ' . $checkpointId, [
+                'count' => $answers->count(),
+                'checkpoint_id' => $checkpointId
+            ]);
+
+            return response()->json($answers);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('Checkpoint no encontrado: ' . $checkpointId);
+            return response()->json(['error' => 'Checkpoint no encontrado'], 404);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener respuestas para checkpoint ' . $checkpointId . ': ' . $e->getMessage());
+            return response()->json(['error' => 'Error al obtener las respuestas'], 500);
         }
     }
 }
