@@ -108,7 +108,7 @@ function isNearCheckpoint(checkpoint) {
     const distance = userLatLng.distanceTo(checkpointLatLng);
 
     console.log('Distancia al checkpoint:', distance); // Debug log
-    return distance <= 100000; // 50 metros de radio
+    return distance <= 50; // 50 metros de radio
 }
 
 // Nueva función para mostrar el contenido del desafío
@@ -388,5 +388,5 @@ function checkProximity(lat1, lon1, lat2, lon2) {
     const distance = R * c;
 
     // Retorna true si la distancia es menor a 50 metros
-    return distance < 100000;
+    return distance < 50;
 }
