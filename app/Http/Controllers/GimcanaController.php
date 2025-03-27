@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\Group;
+use App\Models\UserCheckpoints;
 
 class GimcanaController extends Controller
 {
@@ -128,5 +129,51 @@ class GimcanaController extends Controller
         }
 
         return response()->json(['ready' => false]);
+    }
+
+    public function finishGimcana(Request $request)
+    {
+        try {
+            $gimcanaId = $request->input('gimcana_id');
+            $groupId = $request->input('group_id');
+
+            DB::beginTransaction();
+
+            // Actualizar estado de la gimcana a 'waiting'
+            $gimcana = Gimcana::findOrFail($gimcanaId);
+            $gimcana->status = 'waiting';
+            $gimcana->save();
+
+            // Eliminar registros de user_checkpoints para esta gimcana
+            UserCheckpoints::whereHas('checkpoint', function ($query) use ($gimcanaId) {
+                $query->where('gimcana_id', $gimcanaId);
+            })->delete();
+
+            // Eliminar miembros de todos los grupos de esta gimcana
+            DB::table('group_members')
+                ->whereIn('group_id', function($query) use ($gimcanaId) {
+                    $query->select('id')
+                        ->from('groups')
+                        ->where('gimcana_id', $gimcanaId);
+                })
+                ->delete();
+
+            DB::commit();
+
+            Log::info("Gimcana {$gimcanaId} finalizada por el grupo {$groupId}");
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Gimcana finalizada correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Error finalizando gimcana: " . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al finalizar la gimcana'
+            ], 500);
+        }
     }
 }
