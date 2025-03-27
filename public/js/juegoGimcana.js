@@ -4,6 +4,7 @@ let checkpoints = [];
 let userMarker = null;
 let map = null;
 let completedCheckpoints = new Set();
+let shownCompletionMessages = new Set();
 
 // Inicializar cuando el documento esté listo
 document.addEventListener('DOMContentLoaded', () => {
@@ -82,22 +83,74 @@ function showClue(checkpoint) {
 }
 
 function showChallenge(checkpoint) {
-    console.log('Intentando mostrar desafío para:', checkpoint); // Debug log
+    console.log('Intentando mostrar desafío para:', checkpoint);
 
     if (!isNearCheckpoint(checkpoint)) {
         return;
     }
 
-    if (completedCheckpoints.has(checkpoint.id)) {
-        Swal.fire({
-            title: 'Checkpoint Completado',
-            text: 'Ya has completado este reto. Espera a tus compañeros.',
-            icon: 'info'
-        });
+    // Obtener el checkpoint anterior
+    const currentIndex = checkpoints.findIndex(cp => cp.id === checkpoint.id);
+    const previousCheckpoint = currentIndex > 0 ? checkpoints[currentIndex - 1] : null;
+
+    // Si es el primer checkpoint o si ya completamos este checkpoint
+    if (!previousCheckpoint) {
+        if (completedCheckpoints.has(checkpoint.id)) {
+            if (!shownCompletionMessages.has(checkpoint.id)) {
+                Swal.fire({
+                    title: 'Checkpoint Completado',
+                    text: 'Ya has completado este reto. Espera a tus compañeros.',
+                    icon: 'info'
+                });
+                shownCompletionMessages.add(checkpoint.id);
+            }
+            return;
+        }
+        showChallengeContent(checkpoint);
         return;
     }
 
-    showChallengeContent(checkpoint);
+    // Para checkpoints posteriores, verificar el progreso del anterior
+    const groupId = localStorage.getItem('currentGroupId');
+
+    fetch(`/api/group/${groupId}/checkpoint/${previousCheckpoint.id}/progress`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Progreso del checkpoint anterior:', data);
+
+            // Si el checkpoint anterior está completado por todos
+            if (data.allCompleted) {
+                // Si este checkpoint ya está completado
+                if (completedCheckpoints.has(checkpoint.id)) {
+                    if (!shownCompletionMessages.has(checkpoint.id)) {
+                        Swal.fire({
+                            title: 'Checkpoint Completado',
+                            text: 'Ya has completado este reto. Espera a tus compañeros.',
+                            icon: 'info'
+                        });
+                        shownCompletionMessages.add(checkpoint.id);
+                    }
+                    return;
+                }
+                // Si no está completado, mostrar el desafío
+                showChallengeContent(checkpoint);
+            } else {
+                // Si el checkpoint anterior no está completado por todos
+                Swal.fire({
+                    title: 'Checkpoint anterior no completado',
+                    text: 'Espera a que todos completen el checkpoint anterior',
+                    icon: 'info'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error verificando progreso:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al verificar el progreso del checkpoint anterior',
+                icon: 'error'
+            });
+        });
 }
 
 function isNearCheckpoint(checkpoint) {
@@ -113,7 +166,6 @@ function isNearCheckpoint(checkpoint) {
 
 // Nueva función para mostrar el contenido del desafío
 function showChallengeContent(checkpoint) {
-    // Añadir logs para debugging
     console.log('Mostrando desafío para checkpoint:', checkpoint);
 
     fetch(`/api/checkpoints/${checkpoint.id}/answers`)
@@ -126,8 +178,8 @@ function showChallengeContent(checkpoint) {
         .then(answers => {
             console.log('Respuestas recibidas:', answers); // Debug log
 
-            if (!Array.isArray(answers)) {
-                throw new Error('Formato de respuestas inválido');
+            if (!answers || answers.length === 0) {
+                throw new Error('No hay respuestas disponibles');
             }
 
             const answersHtml = answers.map(answer => {
@@ -153,7 +205,7 @@ function showChallengeContent(checkpoint) {
             console.error('Error al cargar las respuestas:', error);
             Swal.fire({
                 title: 'Error',
-                text: 'Hubo un problema al cargar las respuestas',
+                text: 'Error al cargar las respuestas: ' + error.message,
                 icon: 'error'
             });
         });
@@ -273,18 +325,17 @@ function checkGroupProgress(checkpointId) {
             console.log('Progreso del grupo:', data);
 
             if (data.allCompleted) {
-                // Encontrar el índice del siguiente checkpoint
+                shownCompletionMessages.delete(checkpointId);
+
                 let nextCheckpointIndex = checkpoints.findIndex(cp => cp.id === checkpointId) + 1;
 
                 if (nextCheckpointIndex < checkpoints.length) {
-                    // Si hay más checkpoints, mostrar la siguiente pista
+                    currentCheckpointIndex = nextCheckpointIndex;
                     showClue(checkpoints[nextCheckpointIndex]);
                 } else {
-                    // Si es el último checkpoint, finalizar la gimcana
                     finishGimcana(gimcanaId, groupId);
                 }
             } else {
-                // Mostrar mensaje de espera con el progreso
                 Swal.fire({
                     title: 'Esperando al grupo',
                     text: `${data.completed} de ${data.total} miembros han completado este checkpoint`,
@@ -362,31 +413,20 @@ navigator.geolocation.watchPosition((position) => {
         userMarker.setLatLng([latitude, longitude]);
     }
 
-    // Solo verificar el checkpoint actual
-    const currentCheckpoint = checkpoints[currentCheckpointIndex];
-    if (currentCheckpoint && checkProximity(latitude, longitude, currentCheckpoint.place.latitude, currentCheckpoint.place.longitude)) {
-        showChallenge(currentCheckpoint);
-    }
+    // Verificar todos los checkpoints
+    checkpoints.forEach(checkpoint => {
+        if (checkProximity(latitude, longitude, checkpoint.place.latitude, checkpoint.place.longitude)) {
+            showChallenge(checkpoint);
+        }
+    });
 });
 
 // Función para verificar la proximidad entre dos puntos
 function checkProximity(lat1, lon1, lat2, lon2) {
-    // Radio de la Tierra en metros
-    const R = 6371e3;
+    const userLatLng = L.latLng(lat1, lon1);
+    const checkpointLatLng = L.latLng(lat2, lon2);
+    const distance = userLatLng.distanceTo(checkpointLatLng);
 
-    // Convertir coordenadas a radianes
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-
-    // Fórmula haversine
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c;
-
-    // Retorna true si la distancia es menor a 50 metros
-    return distance < 50;
+    console.log('Distancia al checkpoint:', distance); // Debug log
+    return distance <= 50; // 500 metros de radio
 }
