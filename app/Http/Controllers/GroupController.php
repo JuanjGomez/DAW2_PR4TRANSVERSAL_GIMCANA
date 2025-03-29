@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Group;
 use App\Models\User;
 use App\Models\UserCheckpoints;
+use Illuminate\Support\Facades\Log;
 
 class GroupController extends Controller
 {
@@ -40,7 +41,8 @@ class GroupController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Te has unido al grupo',
-            'group' => $group->load('members')
+            'group' => $group->load('members'),
+            'user' => ['id' => $user->id]
         ]);
     }
 
@@ -85,18 +87,30 @@ class GroupController extends Controller
 
     public function checkCheckpointProgress($groupId, $checkpointId)
     {
-        $group = Group::findOrFail($groupId);
-        $totalMembers = $group->members->count();
+        try {
+            $group = Group::with('members')->findOrFail($groupId);
+            $totalMembers = $group->members->count();
 
-        $completedCount = UserCheckpoints::where('group_id', $groupId)
-            ->where('checkpoint_id', $checkpointId)
-            ->where('completed', true)
-            ->count();
+            // Contar cuántos miembros diferentes han completado este checkpoint
+            $completedCount = UserCheckpoints::where('group_id', $groupId)
+                ->where('checkpoint_id', $checkpointId)
+                ->where('completed', true)
+                ->distinct('user_id')  // Asegurarse de contar cada usuario una sola vez
+                ->count('user_id');    // Contar por user_id en lugar de todas las filas
 
-        return response()->json([
-            'allCompleted' => $completedCount >= $totalMembers,
-            'completed' => $completedCount,
-            'total' => $totalMembers
-        ]);
+            Log::info("Checkpoint Progress - Group: $groupId, Checkpoint: $checkpointId", [
+                'totalMembers' => $totalMembers,
+                'completedCount' => $completedCount
+            ]);
+
+            return response()->json([
+                'allCompleted' => $completedCount >= $totalMembers,
+                'completed' => $completedCount,
+                'total' => $totalMembers
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Error checking checkpoint progress: " . $e->getMessage());
+            return response()->json(['error' => 'Error al verificar el progreso'], 500);
+        }
     }
 }

@@ -49,6 +49,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/api/challenge-answers/verify', [ChallengeAnswerController::class, 'verifyAnswer']);
     Route::post('/api/user-checkpoints', [UserCheckpointController::class, 'store']);
     Route::get('/api/group/{group}/checkpoint/{checkpoint}/progress', [GroupController::class, 'checkCheckpointProgress']);
+    Route::get('/api/user-checkpoints/completed', [UserCheckpointController::class, 'getCompleted']);
+    Route::post('/api/gimcana/finish', [GimcanaController::class, 'finishGimcana']);
 
     // Rutas para Gimcanas
     Route::prefix('gimcanas')->group(function () {

@@ -3,18 +3,22 @@ let currentCheckpointIndex = 0;
 let checkpoints = [];
 let userMarker = null;
 let map = null;
+let completedCheckpoints = new Set();
+let shownCompletionMessages = new Set();
 
 // Inicializar cuando el documento esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    // Verificar si tenemos una gimcana activa
+    // Verificar si tenemos una gimcana activa y los datos necesarios
     const gimcanaId = localStorage.getItem('currentGimcanaId');
-    if (!gimcanaId) {
+    const userId = localStorage.getItem('userId');
+    const groupId = localStorage.getItem('currentGroupId');
+
+    if (!gimcanaId || !userId || !groupId) {
         Swal.fire({
             title: 'Error',
-            text: 'No se encontró una gimcana activa',
+            text: 'Faltan datos necesarios para el juego',
             icon: 'error'
         }).then(() => {
-            // Redirigir al usuario a la página principal
             window.location.href = '/map';
         });
         return;
@@ -34,29 +38,35 @@ function initializeMap() {
 
 async function loadCheckpoints() {
     try {
-        // Obtener el ID de la gimcana actual
         const gimcanaId = localStorage.getItem('currentGimcanaId');
+        const userId = localStorage.getItem('userId');
 
-        if (!gimcanaId) {
-            console.error('No hay una gimcana activa');
+        if (!gimcanaId || !userId) {
+            console.error('No hay una gimcana activa o usuario');
             return;
         }
 
-        // Modificar la URL para incluir el filtro por gimcana_id
+        // Cargar los checkpoints
         const response = await fetch(`/api/checkpoints?gimcana_id=${gimcanaId}`);
         const data = await response.json();
 
         // Asegurarnos de que solo obtenemos los checkpoints de esta gimcana
         checkpoints = data.filter(checkpoint => checkpoint.gimcana_id == gimcanaId);
-
-        // Ordenar checkpoints por orden
         checkpoints.sort((a, b) => a.order - b.order);
 
-        // Mostrar la pista del primer checkpoint
+        // Cargar los checkpoints completados por el usuario
+        const completedResponse = await fetch(`/api/user-checkpoints/completed?user_id=${userId}`);
+        const completedData = await completedResponse.json();
+
+        // Actualizar el Set de checkpoints completados
+        completedCheckpoints = new Set(completedData.map(cp => cp.checkpoint_id));
+
+        // Mostrar la pista del primer checkpoint o el último no completado
         if (checkpoints.length > 0) {
-            showClue(checkpoints[0]);
-        } else {
-            console.error('No hay checkpoints para esta gimcana');
+            const currentCheckpoint = checkpoints[currentCheckpointIndex];
+            if (!completedCheckpoints.has(currentCheckpoint.id)) {
+                showClue(currentCheckpoint);
+            }
         }
     } catch (error) {
         console.error('Error al cargar los checkpoints:', error);
@@ -73,38 +83,152 @@ function showClue(checkpoint) {
 }
 
 function showChallenge(checkpoint) {
-    // Obtener las respuestas del checkpoint
-    const answers = checkpoint.answers.map((answer, index) => {
-        return `<button onclick="verifyAnswer(${checkpoint.id}, ${index})" class="answer-button">${answer}</button>`;
-    }).join('');
+    console.log('Intentando mostrar desafío para:', checkpoint);
 
-    // Mostrar el modal con el desafío y las respuestas
-    Swal.fire({
-        title: 'Desafío',
-        html: `
-            <p>${checkpoint.challenge}</p>
-            <div>${answers}</div>
-        `,
-        showConfirmButton: false
-    });
+    if (!isNearCheckpoint(checkpoint)) {
+        return;
+    }
+
+    // Obtener el checkpoint anterior
+    const currentIndex = checkpoints.findIndex(cp => cp.id === checkpoint.id);
+    const previousCheckpoint = currentIndex > 0 ? checkpoints[currentIndex - 1] : null;
+
+    // Si es el primer checkpoint o si ya completamos este checkpoint
+    if (!previousCheckpoint) {
+        if (completedCheckpoints.has(checkpoint.id)) {
+            if (!shownCompletionMessages.has(checkpoint.id)) {
+                Swal.fire({
+                    title: 'Checkpoint Completado',
+                    text: 'Ya has completado este reto. Espera a tus compañeros.',
+                    icon: 'info'
+                });
+                shownCompletionMessages.add(checkpoint.id);
+            }
+            return;
+        }
+        showChallengeContent(checkpoint);
+        return;
+    }
+
+    // Para checkpoints posteriores, verificar el progreso del anterior
+    const groupId = localStorage.getItem('currentGroupId');
+
+    fetch(`/api/group/${groupId}/checkpoint/${previousCheckpoint.id}/progress`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Progreso del checkpoint anterior:', data);
+
+            // Si el checkpoint anterior está completado por todos
+            if (data.allCompleted) {
+                // Si este checkpoint ya está completado
+                if (completedCheckpoints.has(checkpoint.id)) {
+                    if (!shownCompletionMessages.has(checkpoint.id)) {
+                        Swal.fire({
+                            title: 'Checkpoint Completado',
+                            text: 'Ya has completado este reto. Espera a tus compañeros.',
+                            icon: 'info'
+                        });
+                        shownCompletionMessages.add(checkpoint.id);
+                    }
+                    return;
+                }
+                // Si no está completado, mostrar el desafío
+                showChallengeContent(checkpoint);
+            } else {
+                // Si el checkpoint anterior no está completado por todos
+                Swal.fire({
+                    title: 'Checkpoint anterior no completado',
+                    text: 'Espera a que todos completen el checkpoint anterior',
+                    icon: 'info'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error verificando progreso:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al verificar el progreso del checkpoint anterior',
+                icon: 'error'
+            });
+        });
 }
 
-function verifyAnswer(checkpointId, answerIndex) {
-    // Aquí puedes implementar la lógica para verificar si la respuesta es correcta
-    // Por ejemplo, podrías hacer una llamada a la API para verificar la respuesta
+function isNearCheckpoint(checkpoint) {
+    if (!userMarker || !checkpoint.place) return false;
+
+    const userLatLng = userMarker.getLatLng();
+    const checkpointLatLng = L.latLng(checkpoint.place.latitude, checkpoint.place.longitude);
+    const distance = userLatLng.distanceTo(checkpointLatLng);
+
+    console.log('Distancia al checkpoint:', distance); // Debug log
+    return distance <= 50; // 50 metros de radio
+}
+
+// Nueva función para mostrar el contenido del desafío
+function showChallengeContent(checkpoint) {
+    console.log('Mostrando desafío para checkpoint:', checkpoint);
+
+    fetch(`/api/checkpoints/${checkpoint.id}/answers`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al obtener las respuestas');
+            }
+            return response.json();
+        })
+        .then(answers => {
+            console.log('Respuestas recibidas:', answers); // Debug log
+
+            if (!answers || answers.length === 0) {
+                throw new Error('No hay respuestas disponibles');
+            }
+
+            const answersHtml = answers.map(answer => {
+                return `<button class="answer-button swal2-confirm swal2-styled"
+                    onclick="verifyAnswer(${checkpoint.id}, ${answer.id})">
+                    ${answer.answer}
+                </button>`;
+            }).join('');
+
+            Swal.fire({
+                title: checkpoint.challenge,
+                html: `
+                    <div class="answers-container" style="display: flex; flex-direction: column; gap: 10px;">
+                        ${answersHtml}
+                    </div>
+                `,
+                showConfirmButton: false,
+                showCloseButton: true,
+                allowOutsideClick: false
+            });
+        })
+        .catch(error => {
+            console.error('Error al cargar las respuestas:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al cargar las respuestas: ' + error.message,
+                icon: 'error'
+            });
+        });
+}
+
+function verifyAnswer(checkpointId, answerId) {
     fetch('/api/challenge-answers/verify', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
         body: JSON.stringify({
             checkpoint_id: checkpointId,
-            answer_id: answerIndex
+            answer_id: answerId  // Ahora enviamos el ID real de la respuesta
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error en la verificación');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.correct) {
             Swal.fire({
@@ -121,12 +245,30 @@ function verifyAnswer(checkpointId, answerIndex) {
                 icon: 'error'
             });
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Hubo un problema al verificar la respuesta',
+            icon: 'error'
+        });
     });
 }
 
 function registerCompletedCheckpoint(checkpointId) {
     const userId = localStorage.getItem('userId');
     const groupId = localStorage.getItem('currentGroupId');
+
+    if (!userId || !groupId) {
+        console.error('Faltan datos de usuario o grupo');
+        Swal.fire({
+            title: 'Error',
+            text: 'No se pudo registrar el progreso',
+            icon: 'error'
+        });
+        return;
+    }
 
     fetch('/api/user-checkpoints', {
         method: 'POST',
@@ -141,29 +283,116 @@ function registerCompletedCheckpoint(checkpointId) {
             checkpoint_id: checkpointId,
             completed: true
         })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Error al registrar progreso');
+        }
+        return response.json();
+    })
+    .then(() => {
+        // Añadir el checkpoint a los completados
+        completedCheckpoints.add(checkpointId);
+        checkGroupProgress(checkpointId);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'No se pudo registrar el progreso',
+            icon: 'error'
+        });
     });
 }
 
 function checkGroupProgress(checkpointId) {
     const groupId = localStorage.getItem('currentGroupId');
+    const gimcanaId = localStorage.getItem('currentGimcanaId');
+
+    if (!groupId) {
+        console.error('No se encontró el ID del grupo');
+        return;
+    }
 
     fetch(`/api/group/${groupId}/checkpoint/${checkpointId}/progress`)
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al verificar progreso del grupo');
+            }
+            return response.json();
+        })
         .then(data => {
+            console.log('Progreso del grupo:', data);
+
             if (data.allCompleted) {
-                currentCheckpointIndex++;
-                if (currentCheckpointIndex < checkpoints.length) {
-                    // Mostrar la pista del siguiente checkpoint
-                    showClue(checkpoints[currentCheckpointIndex]);
+                shownCompletionMessages.delete(checkpointId);
+
+                let nextCheckpointIndex = checkpoints.findIndex(cp => cp.id === checkpointId) + 1;
+
+                if (nextCheckpointIndex < checkpoints.length) {
+                    currentCheckpointIndex = nextCheckpointIndex;
+                    showClue(checkpoints[nextCheckpointIndex]);
+                } else {
+                    finishGimcana(gimcanaId, groupId);
                 }
             } else {
                 Swal.fire({
-                    title: '¡Bien hecho!',
-                    text: 'Esperando a que tus compañeros completen el reto',
-                    icon: 'success'
+                    title: 'Esperando al grupo',
+                    text: `${data.completed} de ${data.total} miembros han completado este checkpoint`,
+                    icon: 'info'
                 });
             }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al verificar el progreso del grupo',
+                icon: 'error'
+            });
         });
+}
+
+// Nueva función para finalizar la gimcana
+function finishGimcana(gimcanaId, groupId) {
+    fetch('/api/gimcana/finish', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            gimcana_id: gimcanaId,
+            group_id: groupId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: '¡Felicitaciones!',
+                text: '¡Han completado todos los checkpoints! La gimcana ha terminado.',
+                icon: 'success'
+            }).then(() => {
+                // Limpiar localStorage
+                localStorage.removeItem('currentGroupId');
+                localStorage.removeItem('currentGimcanaId');
+                localStorage.removeItem('userId');
+
+                // Redireccionar al index
+                window.location.href = '/map';
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Error al finalizar la gimcana',
+            icon: 'error'
+        });
+    });
 }
 
 // Función de geolocalización
@@ -184,31 +413,20 @@ navigator.geolocation.watchPosition((position) => {
         userMarker.setLatLng([latitude, longitude]);
     }
 
-    // Solo verificar el checkpoint actual
-    const currentCheckpoint = checkpoints[currentCheckpointIndex];
-    if (currentCheckpoint && checkProximity(latitude, longitude, currentCheckpoint.place.latitude, currentCheckpoint.place.longitude)) {
-        showChallenge(currentCheckpoint);
-    }
+    // Verificar todos los checkpoints
+    checkpoints.forEach(checkpoint => {
+        if (checkProximity(latitude, longitude, checkpoint.place.latitude, checkpoint.place.longitude)) {
+            showChallenge(checkpoint);
+        }
+    });
 });
 
 // Función para verificar la proximidad entre dos puntos
 function checkProximity(lat1, lon1, lat2, lon2) {
-    // Radio de la Tierra en metros
-    const R = 6371e3;
+    const userLatLng = L.latLng(lat1, lon1);
+    const checkpointLatLng = L.latLng(lat2, lon2);
+    const distance = userLatLng.distanceTo(checkpointLatLng);
 
-    // Convertir coordenadas a radianes
-    const φ1 = lat1 * Math.PI/180;
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-
-    // Fórmula haversine
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distance = R * c;
-
-    // Retorna true si la distancia es menor a 50 metros
-    return distance < 50;
+    console.log('Distancia al checkpoint:', distance); // Debug log
+    return distance <= 50; // 500 metros de radio
 }
