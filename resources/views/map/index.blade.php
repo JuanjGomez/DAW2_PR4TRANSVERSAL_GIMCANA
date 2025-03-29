@@ -279,6 +279,7 @@
             <button id="lobbiesBtn" class="map-button">Gimcanas</button>
             <button id="filtrosBtn" class="map-button">Filtros</button>
             <button id="favoritesBtn" class="map-button" onclick="showFavorites()">Favoritos (0)</button>
+            <button id="clearRouteBtn" class="map-button bg-red-500 hover:bg-red-600">Limpiar Ruta</button>
             <form action="{{ route('logout') }}" method="POST" class="logout-form">
                 @csrf
                 <button type="submit" class="important">
@@ -335,6 +336,7 @@
             <div class="flex justify-end gap-2">
                 <button id="closePlaceModal" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cerrar</button>
                 <button id="addToFavorites" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Añadir a favoritos</button>
+                <button id="getDirections" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Cómo llegar</button>
             </div>
         </div>
     </div>
@@ -366,7 +368,7 @@
     <div id="map"></div>
 
     <!-- Scripts -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>if (data.group && data.group.name) {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{{ asset('js/toolsUser.js') }}"></script>
 </body>
 </html>
