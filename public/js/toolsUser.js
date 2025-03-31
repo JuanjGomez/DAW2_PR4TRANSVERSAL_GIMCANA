@@ -50,35 +50,7 @@ const map = L.map('map', {
 
 // Añadir capa de OpenStreetMap con opciones de caché
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: ' OpenStreetMap contributors',
-    maxZoom: 19,
-    minZoom: 3,
-    maxNativeZoom: 19,
-    minNativeZoom: 0,
-    maxBounds: [[-90, -180], [90, 180]],
-    maxBoundsViscosity: 1.0,
-    preferCanvas: true,
-    renderer: L.canvas({
-        padding: 0.5,
-        tolerance: 3,
-        className: '',
-        pane: 'overlayPane',
-        attribution: null,
-        zoomAnimation: true,
-        markerZoomAnimation: true,
-        fadeAnimation: true,
-        trackResize: true,
-        updateWhenIdle: 'ifNotMoving',
-        updateWhenZooming: false,
-        updateInterval: 25,
-        zIndex: 0,
-        maxZoom: null,
-        maxNativeZoom: null,
-        minNativeZoom: null,
-        maxBounds: null,
-        maxBoundsViscosity: null,
-        preferCanvas: true
-    })
+    attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
 // Añadir controles de zoom en la esquina inferior derecha
@@ -99,6 +71,10 @@ let maxDistance = 5; // Distancia máxima en kilómetros
 let isFilteringByDistance = false;
 let currentGroupId = null;
 let currentGimcanaId = null;
+
+// Variables globales para la ruta
+let routeLayer = null;
+let destinationMarker = null;
 
 // Función para calcular la distancia entre dos puntos en kilómetros
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -291,6 +267,24 @@ function showPlaceDetails(place, isFavorite = false) {
     document.getElementById('placeAddress').textContent = place.address;
     document.getElementById('placeDescription').textContent = place.description || 'Sin descripción';
 
+    // Configurar el botón de cómo llegar
+    const directionsBtn = document.getElementById('getDirections');
+    console.log('Botón de direcciones:', directionsBtn); // Esto debería mostrar el elemento del botón
+    directionsBtn.onclick = () => {
+        console.log('Posición del usuario:', userPosition); // Debería mostrar las coordenadas
+        if (userPosition) {
+            console.log('Obteniendo ruta...');
+            getDirections(userPosition.lat, userPosition.lng, place.latitude, place.longitude);
+        } else {
+            console.error('Ubicación del usuario no disponible');
+            Swal.fire({
+                icon: 'warning',
+                title: 'Ubicación no disponible',
+                text: 'No se pudo obtener tu ubicación.'
+            });
+        }
+    };
+
     // Obtener los botones del modal
     const closeBtn = document.getElementById('closePlaceModal');
     const actionBtn = document.getElementById('addToFavorites');
@@ -313,6 +307,85 @@ function showPlaceDetails(place, isFavorite = false) {
     // Mostrar el modal
     const modal = document.getElementById('placeDetailsModal');
     modal.classList.remove('hidden');
+}
+
+// Función para obtener y mostrar la ruta
+function getDirections(startLat, startLng, endLat, endLng) {
+    console.log('Iniciando cálculo de ruta...');
+    console.log('Desde:', startLat, startLng);
+    console.log('Hasta:', endLat, endLng);
+
+    // Limpiar ruta y marcador anteriores
+    if (routeLayer) {
+        console.log('Limpiando ruta anterior...');
+        map.removeLayer(routeLayer);
+    }
+    if (destinationMarker) {
+        console.log('Limpiando marcador anterior...');
+        map.removeLayer(destinationMarker);
+    }
+
+    // Crear marcador de destino
+    destinationMarker = L.marker([endLat, endLng], {
+        icon: L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34]
+        })
+    }).addTo(map);
+    console.log('Marcador de destino creado:', destinationMarker);
+
+    // Usar el servicio de routing de OSRM
+    // fetch(`https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`)
+    //     .then(response => response.json())
+    const url = `https://router.project-osrm.org/route/v1/driving/${startLng},${startLat};${endLng},${endLat}?overview=full&geometries=geojson`;
+    console.log('URL de la API:', url);
+
+    fetch(url)
+        .then(response => {
+            console.log('Respuesta de la API:', response);
+            if (!response.ok) {
+                throw new Error('Error en la respuesta de la API');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Datos de la ruta:', data);
+            if (data.routes && data.routes.length > 0) {
+                const route = data.routes[0];
+                const routeCoordinates = route.geometry.coordinates.map(coord => [coord[1], coord[0]]);
+
+                // Crear la capa de la ruta
+                routeLayer = L.polyline(routeCoordinates, {
+                    color: '#4285F4',
+                    weight: 5,
+                    opacity: 0.7
+                }).addTo(map);
+
+                // Ajustar el mapa para mostrar toda la ruta
+                const bounds = L.latLngBounds(routeCoordinates);
+                map.fitBounds(bounds);
+
+                // Mostrar información de la ruta
+                const distance = (route.distance / 1000).toFixed(2); // en km
+                const duration = (route.duration / 60).toFixed(0); // en minutos
+                destinationMarker.bindPopup(`<b>Distancia:</b> ${distance} km<br><b>Duración:</b> ${duration} min`).openPopup();
+
+                // Cerrar el modal después de mostrar la ruta
+                document.getElementById('placeDetailsModal').classList.add('hidden');
+            } else {
+                throw new Error('No se pudo calcular la ruta');
+            }
+        })
+        .catch(error => {
+            console.error('Error al obtener la ruta:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo calcular la ruta'
+            });
+        });
 }
 
 // Función para cargar los lugares favoritos
@@ -815,3 +888,20 @@ setInterval(() => {
         checkIfGimcanaReady(currentGimcanaId);
     }
 }, 5000); // Verifica cada 5 segundos
+
+// Función para limpiar la ruta
+function clearRoute() {
+    if (routeLayer) {
+        map.removeLayer(routeLayer);
+        routeLayer = null;
+    }
+    if (destinationMarker) {
+        map.removeLayer(destinationMarker);
+        destinationMarker = null;
+    }
+}
+
+// Limpiar la ruta al cerrar el modal
+document.getElementById('closePlaceModal').addEventListener('click', clearRoute);
+
+document.getElementById('clearRouteBtn').addEventListener('click', clearRoute);
