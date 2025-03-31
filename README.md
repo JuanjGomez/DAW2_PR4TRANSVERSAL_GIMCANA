@@ -104,5 +104,5 @@ php artisan serve
 
 📌 **Repositorio GitHub:** [DAW2_PR4TRANSVERSAL_GIMCANA](https://github.com/JuanjGomez/DAW2_PR4TRANSVERSAL_GIMCANA)
 
-🚀 **Desarrollado con ❤️ por el equipo de DAW2** 🚀
+🚀 **Desarrollado con ❤️ por el grupo 04 de DAW2** 🚀
 
