@@ -97,10 +97,10 @@ php artisan serve
 
 
 ## 👥 Equipo de Desarrollo
-- 🧑‍💻 **Deiby Buenaño **
-- 🧑‍💻 **Ángel Camps **
-- 🧑‍💻 **Juan Jose Gomez **
-- 🧑‍💻 **Aina Orozco**
+- 👩‍💻 **Deiby Buenaño **
+- 👩‍💻 **Ángel Camps **
+- 👩‍💻 **Juan Jose Gomez **
+- 👩‍💻 **Aina Orozco**
 
 📌 **Repositorio GitHub:** [DAW2_PR4TRANSVERSAL_GIMCANA](https://github.com/JuanjGomez/DAW2_PR4TRANSVERSAL_GIMCANA)
 
