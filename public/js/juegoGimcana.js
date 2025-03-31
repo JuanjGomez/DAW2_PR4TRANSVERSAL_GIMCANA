@@ -136,11 +136,7 @@ function showChallenge(checkpoint) {
                 showChallengeContent(checkpoint);
             } else {
                 // Si el checkpoint anterior no está completado por todos
-                Swal.fire({
-                    title: 'Checkpoint anterior no completado',
-                    text: 'Espera a que todos completen el checkpoint anterior',
-                    icon: 'info'
-                });
+                console.log('El checkpoint anterior no está completado por todos');
             }
         })
         .catch(error => {
@@ -428,5 +424,5 @@ function checkProximity(lat1, lon1, lat2, lon2) {
     const distance = userLatLng.distanceTo(checkpointLatLng);
 
     console.log('Distancia al checkpoint:', distance); // Debug log
-    return distance <= 50; // 500 metros de radio
+    return distance <= 50; // 50 metros de radio
 }
